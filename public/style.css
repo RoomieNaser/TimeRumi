@@ -177,7 +177,7 @@ body.dark-mode .circle img {
 /* === DARK MODE === */
 body.dark-mode {
   background: #050100;
-  color: #f1f1f1;
+  color: #ffeaea;
 }
 body.dark-mode .form-box input {
   background: rgba(255, 255, 255, 0.05);
@@ -264,4 +264,27 @@ body.dark-mode .form-box input::placeholder {
   .ui-container {
     display: none !important;
   }
+}
+
+body.dark-mode {
+  background: #050100;
+  color: #f1f1f1;
+}
+
+body.dark-mode .form-box input {
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+  color: #f1f1f1;
+}
+
+body.dark-mode .form-box input::placeholder {
+  color: #aaa;
+}
+
+body.dark-mode .current-label,
+body.dark-mode .scramble-string,
+body.dark-mode .response-message,
+body.dark-mode #top5 li,
+body.dark-mode #top5 li span {
+  color: #f1f1f1;
 }
