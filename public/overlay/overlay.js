@@ -9,7 +9,7 @@ function animateEntryChange(li) {
 
 async function fetchLeaderboard() {
   try {
-    const response = await fetch('/leaderboard');
+    const response = await fetch('https://timerumi.onrender.com/leaderboard');
     const result = await response.json();
     const top5 = result.top5;
 

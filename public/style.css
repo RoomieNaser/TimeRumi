@@ -45,7 +45,7 @@ body {
   cursor: pointer;
   transition: opacity 0.2s ease;
 }
-.hamburger { top: 40px; left: 30px; }
+.hamburger { top: 42px; left: 30px; }
 .logo { top: 30px; right: 30px; }
 .dark-toggle { top: 37px; left: 105px; }
 
