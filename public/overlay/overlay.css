@@ -1,0 +1,70 @@
+/* Make the background transparent for OBS */
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  font-family: 'Roboto', sans-serif;
+  overflow: hidden;
+}
+
+/* UL and LI styles */
+#top5 {
+  list-style-position: inside;
+  padding-left: 0;
+  margin: 0 auto;
+  max-width: 300px;
+  background: rgb(0, 12, 22, 0.8); /* optional: semi-transparent background for readability */
+  border-radius: 12px;
+  padding: 10px;
+}
+
+#top5 li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 1.5rem;
+  color: white;
+  text-align: left;
+}
+
+#top5 li span.name {
+  flex: 1;
+}
+
+#top5 li span.time {
+  flex: none;
+  min-width: 70px;
+  text-align: right;
+}
+
+.rank {
+  margin-right: 8px;
+}
+
+.gold {
+  color: #f9cd53;
+}
+.silver {
+  color: #dcdcdc;
+}
+.bronze {
+  color: #99622b;
+}
+
+.new-entry {
+  animation: popIn 0.6s ease-out;
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(1.2);
+    background-color: rgba(49, 243, 97, 0.1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    background-color: transparent;
+    opacity: 1;
+  }
+}

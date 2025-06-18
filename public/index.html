@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TimeRumi</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;450&display=swap" rel="stylesheet">
+
+</head>
+<body>
+  <div class="ui-container">
+    <audio id="clickAudio" src="/sounds/hamburgerSound.mp3" preload="auto"></audio>
+
+    <img src="assets/hamburger-menu.svg" id="ham" class="hamburger">
+    <img src="assets/darkMoon.png" id="darkModeToggle" class="dark-toggle">
+
+
+    <div class="scramble-section">
+      <h1 class="current-label" id="scramble-label">Current Scramble:</h1>
+      <p id="scramble" class="scramble-string">Loading...</p>
+    </div>
+
+    <form id="solveForm" class="form-box">
+        <input type="text" id="name" placeholder="Nickname" maxlength="18">
+        <input type="text" id="time" placeholder="Enter Time" inputmode="decimal" maxlength="6">
+        <button type="submit" style="display: none;"></button>
+    </form>
+
+    <div class="leaderboard">
+      <h2>Top 5 Solves: </h2>
+      <ol id="top5"></ol>
+    </div>
+
+    <div id="response" class="response-message"></div>
+
+    <a href="https://www.youtube.com/c/RoomixCubing" target="_blank">
+        <img src="assets/logo.png" id="ytlogo" class="logo">
+    </a>
+    
+    <div id="blob-left" class="blob">
+        <img src="assets/left_blob.png">
+    </div>
+
+    <div id="circle-left" class="circle">
+        <img src="assets/left_circle.png">
+    </div>
+
+    <div id="blob-right" class="blob">
+        <img src="assets/right_blob.png">
+    </div>
+
+    <div id="circle-right" class="circle">
+        <img src="assets/right_circle.png">
+    </div>
+  </div>
+
+
+
+
+
+
+
+<script src="script.js"></script>
+</body>
+</html>

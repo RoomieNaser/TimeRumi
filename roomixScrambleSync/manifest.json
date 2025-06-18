@@ -1,0 +1,19 @@
+{
+    "manifest_version": 3,
+    "name": "Roomix Scramble Sync",
+    "version": "1.0",
+    "description": "Automatically sends the current cstimer scramble to Roomix Timer backend.",
+    "permissions": ["scripting"],
+    "host_permissions": [
+      "https://localhost:3000/",
+      "https://cstimer.net/"
+    ],
+    "content_scripts": [
+      {
+        "matches": ["https://cstimer.net/*"],
+        "js": ["content.js"],
+        "run_at": "document_idle"
+      }
+    ]
+  }
+  
