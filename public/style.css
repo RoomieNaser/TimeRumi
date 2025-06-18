@@ -1,10 +1,23 @@
-/* === BASE === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+
+/* === BASE VARIABLES === */
 :root {
   --font-main: 'Roboto', sans-serif;
   --blob-size: min(120vw, 1600px);
   --blob-mobile-size: min(160vw, 1200px);
 }
 
+/* === GENERAL RESET === */
 body {
   margin: 0;
   padding: 0;
@@ -15,54 +28,37 @@ body {
   transition: background-color 0.5s ease, color 0.5s ease;
 }
 
-/* === CONTAINER === */
+/* === MAIN CONTAINER === */
 .ui-container {
   position: relative;
-  width: 100vw;
+  width: 100%;
   min-height: 100dvh;
   padding: clamp(20px, 4vw, 40px);
   box-sizing: border-box;
 }
 
 /* === TOP BUTTONS === */
-.hamburger,
-.logo,
-.dark-toggle {
+.hamburger, .logo, .dark-toggle {
   position: absolute;
   width: clamp(24px, 6vw, 32px);
   height: auto;
-  transition: opacity 0.2s ease;
   cursor: pointer;
+  transition: opacity 0.2s ease;
 }
+.hamburger { top: 40px; left: 30px; }
+.logo { top: 30px; right: 30px; }
+.dark-toggle { top: 37px; left: 105px; }
 
-.hamburger {
-  top: 40px;
-  left: 30px;
-}
-
-.logo {
-  top: 30px;
-  right: 30px;
-}
-
-.dark-toggle {
-  top: 37px;
-  left: 105px;
-}
-
-/* === SCRAMBLE DISPLAY === */
+/* === SCRAMBLE SECTION === */
 .scramble-section {
   text-align: center;
   margin-top: clamp(40px, 6vh, 60px);
-  cursor: default;
 }
-
 .current-label {
   font-size: clamp(2.5rem, 6vw, 5rem);
   font-weight: 450;
   margin: 0;
 }
-
 .scramble-string {
   font-size: clamp(1.2rem, 4vw, 2.2rem);
   font-weight: 100;
@@ -78,57 +74,47 @@ body {
   align-items: center;
   gap: 20px;
 }
-
 .form-box input {
   font-size: clamp(1.2rem, 4vw, 2.2rem);
   text-align: center;
   padding: 10px 20px;
-  background-color: transparent;
+  background: transparent;
   color: #000;
   width: clamp(200px, 80vw, 300px);
   border: none;
   border-radius: 30px;
   opacity: 0.4;
   transition: all 0.2s ease;
-  cursor: text;
 }
-
 .form-box input:hover,
 .form-box input:focus {
   opacity: 1;
   outline: none;
 }
-
 .form-box input::placeholder {
   color: #7a7a7a;
   transition: color 0.2s ease;
 }
-
 .form-box input:focus::placeholder {
   color: transparent;
 }
-
 .form-box input.has-text {
   opacity: 1;
-  color: inherit;
 }
 
 /* === LEADERBOARD === */
 .leaderboard {
   text-align: center;
-  font-family: var(--font-main);
   font-size: clamp(1.2rem, 3vw, 1.5rem);
-  margin-top: 70px;
   font-weight: 100;
+  margin-top: 70px;
 }
-
 #top5 {
-  list-style-position: inside;
-  padding-left: 0;
+  list-style: none;
+  padding: 0;
   margin: 0 auto;
   max-width: 400px;
 }
-
 #top5 li {
   display: flex;
   justify-content: space-between;
@@ -136,19 +122,14 @@ body {
   border-bottom: 1px solid #ddd;
   font-size: 1.4rem;
 }
-
-#top5 li span.name {
-  flex: 1;
-}
-
+#top5 li span.name { flex: 1; }
 #top5 li span.time {
   min-width: 70px;
   text-align: right;
 }
-
 .rank { margin-right: 8px; }
 .gold { color: #f9cd53; }
-.silver { color: rgb(220, 220, 220); }
+.silver { color: #ccc; }
 .bronze { color: #99622b; }
 
 /* === BLOBS & CIRCLES === */
@@ -160,7 +141,6 @@ body {
   opacity: 0;
   transition: transform 1.2s ease-in-out, opacity 1.2s ease-in-out;
 }
-
 #blob-left { left: 0; transform: translateX(-150px); }
 #circle-left { left: 0; transform: translateX(-100px); }
 #blob-right { right: 0; transform: translateX(150px); }
@@ -173,14 +153,12 @@ body.loaded #circle-right {
   transform: translateX(0);
   opacity: 1;
 }
-
 .blob img, .circle img {
   width: var(--blob-size);
   max-width: 1580px;
   height: auto;
   transition: opacity 0.4s ease;
 }
-
 body.dark-mode .blob img,
 body.dark-mode .circle img {
   opacity: 0.6;
@@ -198,29 +176,15 @@ body.dark-mode .circle img {
 
 /* === DARK MODE === */
 body.dark-mode {
-  background-color: #050100;
+  background: #050100;
   color: #f1f1f1;
 }
-
-body.dark-mode .current-label,
-body.dark-mode .scramble-string,
-body.dark-mode .form-box input,
-body.dark-mode .response-message,
-body.dark-mode .dark-toggle {
-  color: #f1f1f1;
-}
-
 body.dark-mode .form-box input {
-  background-color: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.05);
   border-bottom: 1px solid rgba(255, 255, 255, 0.6);
 }
-
 body.dark-mode .form-box input::placeholder {
   color: #aaa;
-}
-
-body.dark-mode .form-box input:focus::placeholder {
-  color: transparent;
 }
 
 /* === ANIMATIONS === */
@@ -228,18 +192,14 @@ body.dark-mode .form-box input:focus::placeholder {
   content: '|';
   animation: blink 1s infinite;
   margin-left: 4px;
-  font-weight: 300;
 }
-
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
 }
-
 .new-entry {
   animation: popIn 0.6s ease-out;
 }
-
 @keyframes popIn {
   0% {
     transform: scale(1.1);
@@ -248,12 +208,12 @@ body.dark-mode .form-box input:focus::placeholder {
   }
   100% {
     transform: scale(1);
-    background-color: transparent;
+    background: transparent;
     opacity: 1;
   }
 }
 
-/* === RESPONSIVE ADJUSTMENTS === */
+/* === MOBILE PORTRAIT FIX === */
 @media (max-width: 600px) {
   :root {
     --blob-size: var(--blob-mobile-size);
@@ -263,9 +223,6 @@ body.dark-mode .form-box input:focus::placeholder {
   .logo { top: 20px; right: 20px; }
   .dark-toggle { top: 20px; left: 70px; }
 
-  .scramble-section { margin-top: 40px; }
-  .leaderboard { margin-top: 50px; }
-
   .form-box input {
     max-width: 90%;
     border-radius: 20px;
@@ -273,10 +230,7 @@ body.dark-mode .form-box input:focus::placeholder {
     padding: 8px 16px;
   }
 
-  .response-message {
-    font-size: 1rem;
-  }
-
+  .response-message { font-size: 1rem; }
   #top5 { width: 95%; }
   #top5 li {
     font-size: 1rem;
@@ -286,6 +240,28 @@ body.dark-mode .form-box input:focus::placeholder {
   .rank, .name, .time {
     font-size: 0.95rem;
   }
-
   .name { max-width: 60%; }
+}
+
+/* === FORCE PORTRAIT MODE ON MOBILE === */
+@media screen and (orientation: landscape) and (max-width: 900px) {
+  body::before {
+    content: "Please rotate your device to portrait mode";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 99999;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    font-size: clamp(16px, 5vw, 24px);
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  #overlay-content,
+  .ui-container {
+    display: none !important;
+  }
 }
