@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm rebuild better-sqlite3",
+    "start": "node epicServer.js"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +15,7 @@
     "better-sqlite3": "^11.10.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "express-rate-limit": "^7.5.0"
+    "express-rate-limit": "^7.5.0",
+    "sqlite3": "^5.1.7"
   }
 }
