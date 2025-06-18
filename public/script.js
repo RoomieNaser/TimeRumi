@@ -2,7 +2,7 @@ let isAnimatingScramble = false;
 let lastScramble = "";
 
 function typeScramble(scrambleText) {
-    if (isAnimatingScramble) return; // 🚫 protect from overlapping
+    if (isAnimatingScramble) return; 
     
     isAnimatingScramble = true;
 
@@ -26,29 +26,26 @@ function typeScramble(scrambleText) {
     typeNextChar();
 }
 
-
-
 //waits for html page to fully load that's coolll
 window.addEventListener('DOMContentLoaded', () => {
     console.log("DOM FULLY LOADED");
     document.body.classList.add('loaded');
 
     document.getElementById('time').addEventListener('input', (e) => {
-    let raw = e.target.value.replace(/\D/g, ''); // remove non-digits
+        let raw = e.target.value.replace(/\D/g, ''); // remove non-digits
 
-    if (raw.length === 0) {
-        e.target.value = '';
-    } else if (raw.length === 1) {
-        e.target.value = '0.0' + raw;
-    } else if (raw.length === 2) {
-        e.target.value = '0.' + raw;
-    } else {
-        const sec = raw.slice(0, -2).replace(/^0+/, '') || '0'; // remove leading 0s, fallback to 0
-        const decimal = raw.slice(-2);
-        e.target.value = sec + '.' + decimal;
-    }
-});
-
+        if (raw.length === 0) {
+            e.target.value = '';
+        } else if (raw.length === 1) {
+            e.target.value = '0.0' + raw;
+        } else if (raw.length === 2) {
+            e.target.value = '0.' + raw;
+        } else {
+            const sec = raw.slice(0, -2).replace(/^0+/, '') || '0'; // remove leading 0s, fallback to 0
+            const decimal = raw.slice(-2);
+            e.target.value = sec + '.' + decimal;
+        }
+    });
 
     const label = document.getElementById("scramble-label");
     const fullText = "Current Scramble:";
@@ -72,7 +69,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('name').value = savedName;
             }
 
-            fetch('/scramble')
+            fetch('https://timerumi.onrender.com/scramble')
                 .then(res => res.json())
                 .then(data => {
                     typeScramble(data.scramble); // ✅ Animate scramble now
@@ -91,7 +88,6 @@ hamburger.addEventListener('click', () => {
     hamSound.volume = 0.7;
     hamSound.play();
 });
-
 
 //Listen for form submission (Enter key in time input)
 document.getElementById('solveForm').addEventListener('submit', async (e) => {
@@ -112,7 +108,7 @@ document.getElementById('solveForm').addEventListener('submit', async (e) => {
     localStorage.setItem('roomixName', name);
 
     //send to server
-    const res = await fetch('/submit', {
+    const res = await fetch('https://timerumi.onrender.com/submit', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({name, time})
@@ -153,13 +149,13 @@ document.getElementById('solveForm').addEventListener('submit', async (e) => {
 lastScramble = "";
 
 async function checkScrambleChange() {
-    if (isAnimatingScramble) return; // 🚫 don't interrupt typing
+    if (isAnimatingScramble) return; 
 
     try {
-        const res = await fetch('/scramble');
+        const res = await fetch('https://timerumi.onrender.com/scramble');
         const data = await res.json();
 
-        // ✅ Bail early if it's identical or already queued
+        // Bail early if it's identical or already queued
         if (!data.scramble || data.scramble === lastScramble) return;
 
         typeScramble(data.scramble);
@@ -168,21 +164,18 @@ async function checkScrambleChange() {
     }
 }
 
-
-
 setInterval(checkScrambleChange, 2000);
 
 //Color change on epic typing
 const nameInput = document.querySelector('.form-box input');
 
 nameInput.addEventListener('blur', () => {
-  if (nameInput.value.trim() !== "") {
-    nameInput.classList.add('has-text');
-  } else {
-    nameInput.classList.remove('has-text');
-  }
+    if (nameInput.value.trim() !== "") {
+        nameInput.classList.add('has-text');
+    } else {
+        nameInput.classList.remove('has-text');
+    }
 });
-
 
 //Dark-mode logiccc
 const darkToggle = document.getElementById('darkModeToggle');
@@ -227,7 +220,7 @@ let previousTop5 = [];
 
 async function updateLeaderboard() {
     try {
-        const res = await fetch('/leaderboard');
+        const res = await fetch('https://timerumi.onrender.com/leaderboard');
         const data = await res.json();
         const list = document.getElementById('top5');
         list.innerHTML = ''; // clear existing
@@ -271,7 +264,3 @@ async function updateLeaderboard() {
 
 setInterval(updateLeaderboard, 3000);
 updateLeaderboard();
-
-
-
-

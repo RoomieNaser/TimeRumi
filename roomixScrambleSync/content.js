@@ -46,7 +46,7 @@ setInterval(() => {
     if (scramble && scramble !== lastSent) {
         lastSent = scramble;
 
-        fetch("http://localhost:3000/scramble", {
+        fetch("https://timerumi.onrender.com/scramble", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ scramble })
