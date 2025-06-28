@@ -1,3 +1,4 @@
+
 const Database = require("better-sqlite3");
 const db = new Database("timer.db");
 
@@ -34,5 +35,4 @@ db.exec(`
         timestamp INTEGER
     );
 `)
-
 module.exports = db;
