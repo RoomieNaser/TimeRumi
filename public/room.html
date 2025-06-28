@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TimeRumi</title>
+  <link rel="stylesheet" href="/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;450&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  
+    <div class="ui-container">
+      <audio id="clickAudio" src="/sounds/hamburgerSound.mp3" preload="auto"></audio>
+      <a href="/" id="homeBtn">
+        <img src="/assets/homeLight.svg" id="ham" class="hamburger">
+      </a>
+
+      <img src="/assets/lightMode.svg" id="darkModeToggle" class="dark-toggle">
+
+      <div class="copy-code" id = "copyCode">
+        <span id="copyCodeDisplay">???</span>
+        <img src="/assets/copyLight.svg" id="copyIcon" class="copy-icon" title="Copy code">
+      </div>
+
+      <div class="scramble-section">
+        <div class="scramble-label-container">
+          <h1 class="current-label typing-cursor" id="scramble-label">Current Scramble:</h1>
+          <button id="nextScrambleBtn" class="next-btn" title="Next Scramble">»</button>
+        </div>
+
+        <p id="scramble" class="scramble-string">Loading...</p>
+      </div>
+
+
+      <div id="postSolveOptions" class="post-options">
+        <button id="plusTwoBtn">+2</button>
+        <button id="dnfBtn">DNF</button>
+      </div>
+
+      <div id="live-averages" class="live-averages hidden">
+        <div class="live-avg"><span class="label">ao5:</span> <span id="live-ao5">-</span></div>
+        <div class="live-avg"><span class="label">ao12:</span> <span id="live-ao12">-</span></div>
+      </div>
+
+
+      <div id="leaderBoardID" class="leaderboard">
+        <h2 class="leaderboard-label">Leaderboard: </h2>
+        <ol id="top5"></ol>
+      </div>
+
+      <div id="response" class="response-message"></div>
+
+      <a href="https://www.youtube.com/c/RoomixCubing" target="_blank">
+        <img src="/assets/logo.png" id="ytlogo" class="logo">
+      </a>
+    </div>
+
+      <div id="timerDisplay" class="timer-display">0.00</div>
+
+        <div id="blob-left" class="blob">
+        <img src="/assets/left_blob.png">
+      </div>
+    
+
+      <div id="circle-left" class="circle">
+        <img src="/assets/left_circle.png">
+      </div>
+
+      <div id="blob-right" class="blob">
+        <img src="/assets/right_blob.png">
+      </div>
+
+      <div id="circle-right" class="circle">
+        <img src="/assets/right_circle.png">
+      </div>
+    
+    <div id="chat-toggle" class="chatToggle">
+      <!-- Desktop Arrow -->
+      <svg class="desktop-arrow" xmlns="http://www.w3.org/2000/svg" fill="none"
+          viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15.75 19.5 8.25 12l7.5-7.5" />
+      </svg>
+
+      <!-- Mobile Arrow -->
+      <svg class="mobile-arrow size-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 9.78a.75.75 0 0 1-1.06 0L8 7.06 5.28 9.78a.75.75 0 0 1-1.06-1.06l3.25-3.25a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06Z" clip-rule="evenodd" />
+      </svg>
+    </div>
+    
+    <div id="chat-panel">
+      <div class="chat-header">
+        <span>· TimeRumi Chat</span>
+        <button id="chatClose" class="close-chat"><svg width="30" height="30" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="size-6">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+  </svg>
+  </button>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <form id="chatForm">
+        <input type="text" id="chatInput" placeholder="· Message" autocomplete="off" />
+        <button type="submit">
+          <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+          </svg>
+        </button>
+      </form>
+    </div>
+
+    <div id="stats-toggle" class="statsToggle">
+    <!-- Arrow icon -->
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+    </svg>
+  </div>
+
+
+    <div id="stats-panel">
+      <div class="stats-header">
+        <span>• Statistics</span>
+        <button id="statsClose" class="close-stats">
+          <svg width="30" height="30" xmlns="http://www.w3.org/2000/svg" fill="none"
+              viewBox="0 0 24 24" stroke-width="1.5" stroke="white">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="stats-content">
+        <div id="stats-summary">
+          <div class="stat-section-label">current</div>
+          <div>time: <span id="current-time">-</span></div>
+          <div>mo3: <span id="current-mo3">-</span></div>
+          <div>ao5: <span id="current-ao5">-</span></div>
+          <div>ao12: <span id="current-ao12">-</span></div>
+          <div class="stat-section-label">best</div>
+          <div>single: <span id="best-single">-</span></div>
+          <div>ao5: <span id="best-ao5">-</span></div>
+          <div>ao12: <span id="best-ao12">-</span></div>
+          <div>mean: <span id="mean">-</span></div>
+        </div>
+        <div id="solve-history-btns">
+          <button id="reset-solo-btn" title="Clear all solo solves">
+            <img src="/assets/trash.svg" />
+          </button>
+
+          <button id="exportCSV" class="export-btn">
+            <img src="/assets/export.svg" />
+          </button>
+        </div>
+        <div id="solve-history">
+
+          <table id="history-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Raw</th>
+                <th>Penalty</th>
+                <th>Final</th>
+                <th>ao5</th>
+                <th>ao12</th>
+              </tr>
+            </thead>
+            <tbody id="history-body">
+              <!-- History rows will go here -->
+            </tbody>
+          </table>
+        </div>
+
+
+      </div>
+    </div>
+
+
+
+    <div id="touchArea"></div>
+
+
+
+
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="/global.js" defer></script>
+  <script src="/roomLogic.js" defer></script>
+  <script src="/chat.js" defer></script>
+</body>
+</html>

@@ -1,68 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>TimeRumi</title>
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;450&display=swap" rel="stylesheet">
-
+  <link rel="stylesheet" href="landing.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;500&display=swap" rel="stylesheet">
 </head>
-<body>
-  <div class="ui-container">
-    <audio id="clickAudio" src="/sounds/hamburgerSound.mp3" preload="auto"></audio>
+<body class="loaded">
+  <!-- Blurred Background Blobs -->
+  <div id="blob-left" class="blob"><img src="/assets/left_blob.png" /></div>
+  <div id="circle-left" class="circle"><img src="/assets/left_circle.png" /></div>
+  <div id="blob-right" class="blob"><img src="/assets/right_blob.png" /></div>
+  <div id="circle-right" class="circle"><img src="/assets/right_circle.png" /></div>
 
-    <img src="assets/hamburger-menu.svg" id="ham" class="hamburger">
-    <img src="assets/darkMoon.png" id="darkModeToggle" class="dark-toggle">
+  <!-- Centered Form Wrapper -->
+  <div class="center-wrap">
+    <div class="center-content">
+      <div class="intro-text">Timerumi - Cubing Gone Multiplayer!</div>
+      <div class="glass-box">
+        <div class="login-line">
+          <h1 class="login">Login</h1>
+          <a class="donate" href="https://streamelements.com/roomixcubing/tip" target="_blank">
+            <img src="/assets/donate.svg" />
+            <span class="tooltip">Support Timerumi?</span>
+          </a>          
+        </div>
 
+        <input type="text" id="nickname" placeholder="Nickname" maxlength="18" />
+        <input type="text" id="roomCodeInput" placeholder="Code" maxlength="5" />
+        
+        <div class="button-row">
+          <div class="join-create-row">
+            <button id="createBtn">Create</button>
+            <button id="joinBtn" disabled>Join</button>
+          </div>
+          <button id="soloBtn" class="solo-button">Singleplayer</button>
+        </div>
 
-    <div class="scramble-section">
-      <h1 class="current-label" id="scramble-label">Current Scramble:</h1>
-      <p id="scramble" class="scramble-string">Loading...</p>
-    </div>
-
-    <form autocomplete="off" id="solveForm" class="form-box">
-        <input type="text" id="name" autocomplete="off" placeholder="Nickname" maxlength="18">
-        <input type="text" id="time" autocomplete="off" placeholder="Enter Time" inputmode="decimal" maxlength="6">
-        <button type="submit" style="display: none;"></button>
-    </form>
-
-    <div class="leaderboard">
-      <h2>Top 5 Solves: </h2>
-      <ol id="top5"></ol>
-    </div>
-
-    <div id="response" class="response-message"></div>
-
-    <a href="https://www.youtube.com/c/RoomixCubing" target="_blank">
-        <img src="assets/logo.png" id="ytlogo" class="logo">
-    </a>
-    
-    <div id="blob-left" class="blob">
-        <img src="assets/left_blob.png">
-    </div>
-
-    <div id="circle-left" class="circle">
-        <img src="assets/left_circle.png">
-    </div>
-
-    <div id="blob-right" class="blob">
-        <img src="assets/right_blob.png">
-    </div>
-
-    <div id="circle-right" class="circle">
-        <img src="assets/right_circle.png">
+      </div>
     </div>
   </div>
 
 
 
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+  <script src="landing.js"></script>
 
-
-
-
-<script src="script.js"></script>
 </body>
 </html>

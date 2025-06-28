@@ -1,105 +1,297 @@
-// Importing modules
-const express = require('express');
-const rateLimit = require('express-rate-limit');
-const Database = require('better-sqlite3');
-const cors = require('cors');
-const path = require('path');
-
+//required modules and stuffs
+const express = require("express");
+const scrambler = require("cube-scrambler")();
+const crypto = require("crypto");
+const http = require("http");
 const app = express();
+const {Server} = require("socket.io");
+const path = require("path");
+const server = http.createServer(app);
+const io = new Server(server);
+
 const PORT = process.env.PORT || 3000;
 
-// Global scramble
-let currentScramble = 'No scramble yet';
-
-// Middleware
-app.use(cors({ origin: 'https://cstimer.net' }));
+app.use(express.static("public"));
 app.use(express.json());
-app.use('/overlay', express.static('overlay'));
-app.use(express.static(path.join(__dirname, 'public')));
 
-// Connect to database
-const db = new Database('./solves.db');
-console.log('WE IN THE SQLITE DATABASE BABYYYY!!!');
+//database require
+const db = require("./database");
 
-// Create table
-db.prepare(`
-    CREATE TABLE IF NOT EXISTS solves (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        time REAL NOT NULL,
-        scramble TEXT NOT NULL,
-        submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(name, scramble)
-    )
-`).run();
+//function to generate the room code
+function generateRoomCode() {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let code;
+  const stmt = db.prepare("SELECT 1 FROM rooms WHERE code = ?");
 
-// Rate limiter
-const limiter = rateLimit({
-    windowMs: 10 * 1000,
-    max: 3,
-    message: { error: "Too many submissions dawg watchu doin huh" }
-});
-app.use('/submit', limiter);
+  do {
+    code = Array.from({ length: 5 }, () =>
+      letters[Math.floor(Math.random() * letters.length)]
+    ).join("");
+  } while (stmt.get(code));
 
-// Scramble routes
-app.get('/scramble', (req, res) => {
-    res.json({ scramble: currentScramble });
+  return code;
+}
+
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-app.post('/scramble', (req, res) => {
-    currentScramble = req.body.scramble;
-    res.json({ message: 'Scramble updated!' });
+app.get("/room/:roomCode", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "room.html"));
 });
 
-// Submit solve
-app.post('/submit', (req, res) => {
-    const { name, time } = req.body;
-    if (!name || !time) {
-        return res.status(400).json({ error: "NAME AND TIME REQUIRED!!! PLSSS" });
-    }
+//io.on connection stuff
+io.on("connection", (socket) => {
+    console.log("[SOCKET] New connection:", socket.id);
 
-    try {
-        const stmt = db.prepare(`INSERT INTO solves (name, time, scramble) VALUES (?, ?, ?)`);
-        const info = stmt.run(name, time, currentScramble);
+    //create room handler
+    socket.on("createRoom", ({nickname}) => {
+      const roomCode = generateRoomCode();
+      const token = crypto.randomUUID().replace(/-/g, "");
+      const scramble = scrambler.scramble().join (" ");
 
-        console.log(`[SUBMIT] ${name} - ${time}s for scramble: ${currentScramble}`);
+      db.prepare(`INSERT INTO rooms (code, leader, scramble, created_at) VALUES (?, ?, ?, ?)`)
+        .run(roomCode, token, scramble, Date.now());
 
-        // Trim to last 100 solves
-        db.prepare(`
-            DELETE FROM solves
-            WHERE id NOT IN (
-                SELECT id FROM solves
-                ORDER BY id DESC
-                LIMIT 100
-            )
-        `).run();
+      db.prepare(`INSERT INTO players (token, room_code, name) VALUES (?, ?, ?)`)
+        .run(token, roomCode, nickname);
 
-        res.json({ message: "Time submitted!", id: info.lastInsertRowid });
-    } catch (err) {
-        if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-            return res.status(409).json({ error: "you've already submitted dumbo :P" });
+      console.log(`[ROOM CREATED] ${roomCode} by ${nickname} (${token})`);
+      socket.emit("roomCreated", {roomCode, token});
+    });
+
+     //leader requests new scramble - boom epic new scramble
+    socket.on("requestNextScramble", ({roomCode, token}) => {
+      const room = db.prepare("SELECT * FROM rooms WHERE code = ?").get(roomCode);
+      if (!room) return;
+      if (room.leader !== token) return;
+
+
+      const newScramble = scrambler.scramble().join(" ");
+      db.prepare("UPDATE rooms SET scramble = ? WHERE code = ?").run(newScramble, roomCode);
+      io.to(roomCode).emit("scrambleUpdated", newScramble);
+    });
+
+    //joinRoom handler
+    socket.on("joinRoom", ({roomCode, nickname, token}) => {
+      console.log("[SERVER] joinRoom received:", {roomCode, nickname, token});
+      
+      const room = db.prepare(`SELECT * FROM rooms WHERE code = ?`).get(roomCode);
+      if (!room) {
+        socket.emit("errorJoin", "Room not found");
+        return;
+      }
+
+      const player = db.prepare(`SELECT * FROM players WHERE token = ?`).get(token);
+      if (!player) {
+        db.prepare(`INSERT INTO players (token, room_code, name) VALUES (?, ?, ?)`)
+          .run(token, roomCode, nickname);
+      }
+
+      const players = db.prepare(`SELECT token, name FROM players WHERE room_code = ?`).all(roomCode);
+      const playerMap = Object.fromEntries(players.map(p => [p.token, p.name]));
+
+      socket.join(roomCode);
+      console.log(`Socket ${socket.id} (${nickname}) joined room ${roomCode} as token: ${token}`);
+      console.log("[SERVER] Emitting roomJoined with scramble:", room.scramble);
+
+      socket.data.roomCode = roomCode;
+      socket.data.token = token;
+      socket.data.nickname = nickname;
+
+      socket.emit("roomJoined", {
+        scramble: room.scramble,
+        token,
+        leader: room.leader,
+        players: playerMap
+      });
+
+      // Fetch last 50 chat messages (or however many you want)
+      const chatHistory = db.prepare(`
+        SELECT name, message, timestamp, 'user' as type FROM chat
+        WHERE room_code = ?
+        ORDER BY timestamp ASC
+        LIMIT 100
+      `).all(roomCode);
+
+      // Send to the newly joined user only
+      socket.emit("chatHistory", chatHistory);
+
+
+      io.to(roomCode).emit("chatMessage", {
+        name: "Carl",
+        message: `${nickname} joined the room! Say hi!`,
+        type: "system"
+      });
+    });
+
+    socket.on("submitSolve", ({ roomCode, token, time, scramble }) => {
+      const player = db.prepare("SELECT * FROM players WHERE token = ? AND room_code = ?").get(token, roomCode);
+      if (!player) return;
+
+      const trimmedScramble = scramble.trim();
+
+      // Prevent duplicate submissions for the same scramble
+      const existing = db.prepare("SELECT 1 FROM solves WHERE token = ? AND scramble = ?").get(token, trimmedScramble);
+      if (existing) return;
+
+      // Insert the new solve
+      db.prepare(`
+        INSERT INTO solves (token, scramble, time, penalty, timestamp)
+        VALUES (?, ?, ?, '', ?)
+      `).run(token, trimmedScramble, parseFloat(time), Date.now());
+
+      // Get top 10 valid solves for this scramble
+      const top10 = db.prepare(`
+        SELECT players.name, solves.time
+        FROM solves
+        JOIN players ON solves.token = players.token
+        WHERE solves.scramble = ? AND solves.time IS NOT NULL
+        ORDER BY solves.time ASC
+        LIMIT 10
+      `).all(trimmedScramble);
+
+      io.to(roomCode).emit("leaderboardUpdate", top10);
+    });
+
+    socket.on("applyPenalty", ({ roomCode, token, scramble, penalty }) => {
+      const player = db.prepare("SELECT * FROM players WHERE token = ? AND room_code = ?").get(token, roomCode);
+      if (!player) {
+        console.log("Penalty ignored: player not found.");
+        return;
+      }
+
+      const trimmedScramble = scramble.trim();
+
+      // Check if solve exists
+      const solve = db.prepare(`
+        SELECT * FROM solves
+        WHERE token = ? AND scramble = ?
+      `).get(token, trimmedScramble);
+
+      if (!solve) {
+        console.log("Penalty ignored: solve not found.");
+        return;
+      }
+
+      let updatedTime = solve.time;
+      let updatedPenalty = penalty;
+
+      if (penalty === "+2") {
+        updatedTime += 2.00;
+      } else if (penalty === "DNF") {
+        updatedTime = null;
+      }
+
+      // Update the solve with penalty and adjusted time
+      db.prepare(`
+        UPDATE solves
+        SET time = ?, penalty = ?
+        WHERE id = ?
+      `).run(updatedTime, updatedPenalty, solve.id);
+
+      // Fetch updated top 10 leaderboard
+      const top10 = db.prepare(`
+        SELECT players.name, solves.time
+        FROM solves
+        JOIN players ON solves.token = players.token
+        WHERE solves.scramble = ? AND solves.time IS NOT NULL
+        ORDER BY solves.time ASC
+        LIMIT 10
+      `).all(trimmedScramble);
+
+      io.to(roomCode).emit("leaderboardUpdate", top10);
+    });
+
+
+    //disconnect handler
+    socket.on("disconnect", () => {
+      const roomCode = socket.data.roomCode;
+      const token = socket.data.token;
+      const nickname = socket.data.nickname;
+
+      if (!roomCode || !token) {
+        console.log("[SOCKET] Disconnected (no room data):", socket.id);
+        return;
+      }
+
+      // Remove the player from DB
+      db.prepare("DELETE FROM players WHERE token = ? AND room_code = ?").run(token, roomCode);
+
+      io.to(roomCode).emit("chatMessage", {
+        name: "Carl",
+        message: `${nickname} left the room :(`,
+        type: "system"
+      });
+
+      // leader change stuffs (pain in the ass)
+      const room = db.prepare("SELECT * FROM rooms WHERE code = ?").get(roomCode);
+      if (room && room.leader === token) {
+        const remainingPlayers = db.prepare("SELECT token, name FROM players WHERE room_code = ?").all(roomCode);
+
+        if (remainingPlayers.length > 0) {
+          const newLeader = remainingPlayers[0];
+          db.prepare("UPDATE rooms SET leader = ? WHERE code = ?").run(newLeader.token, roomCode);
+
+          io.to(roomCode).emit("chatMessage", {
+            name: "Carl",
+            message: `${newLeader.name} is the new leader!`,
+            type: "system"
+          });
+
+          io.to(roomCode).emit("leaderChanged", {
+            newLeaderToken: newLeader.token,
+            newLeaderName: newLeader.name
+          });
+        } else {
+          // No players left, set leader to null for now (we'll delete room below)
+          db.prepare("UPDATE rooms SET leader = NULL WHERE code = ?").run(roomCode);
         }
-        return res.status(500).json({ error: err.message });
-    }
-});
+      }
 
-// Leaderboard route
-app.get('/leaderboard', (req, res) => {
-    try {
-        const stmt = db.prepare(`
-            SELECT name, time FROM solves
-            WHERE scramble = ?
-            ORDER BY time ASC
-            LIMIT 5
-        `);
-        const top5 = stmt.all(currentScramble);
-        res.json({ top5 });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+      // Room auto deletion
+      const remaining = db.prepare("SELECT COUNT(*) AS count FROM players WHERE room_code = ?").get(roomCode);
+      if (remaining.count === 0) {
+        db.prepare("DELETE FROM rooms WHERE code = ?").run(roomCode);
+        console.log(`[CARL] Deleted empty room: ${roomCode}`);
+      }
+    });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+
+
+
+    socket.on("chatMessage", ({ token, message }) => {
+      console.log("[SERVER] Received chatMessage:", { token, message });
+
+      // Lookup player info
+      const player = db.prepare(`
+        SELECT players.name, players.room_code 
+        FROM players 
+        WHERE token = ?
+      `).get(token);
+
+      if (!player) {
+        console.log("[SERVER] Chat message ignored - no matching player found in DB.");
+        return;
+      }
+
+      const { name, room_code: roomCode } = player;
+
+      // Save message to DB
+      db.prepare(`
+        INSERT INTO chat (room_code, name, message, timestamp)
+        VALUES (?, ?, ?, ?)
+      `).run(roomCode, name, message, Date.now());
+
+      // Broadcast to room
+      console.log(`[SERVER] Broadcasting message from ${name} in room ${roomCode}`);
+      io.to(roomCode).emit("chatMessage", { name, message });
+    });
+
+
+  });
+
+server.listen(PORT, () => {
+  console.log(`[SERVER] Listening on port ${PORT}`);
 });
