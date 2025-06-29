@@ -106,45 +106,127 @@ function updateSolveHistory() {
   const tbody = document.getElementById("history-body");
   tbody.innerHTML = "";
 
-  // Find best valid final time (excluding DNFs)
   let bestFinalTime = Infinity;
   soloSolves.forEach((solve) => {
     if (!solve.dnf) {
-      let final = solve.plusTwo ? solve.time + 2 : solve.time;
+      const final = solve.plusTwo ? solve.time + 2 : solve.time;
       if (final < bestFinalTime) bestFinalTime = final;
     }
   });
 
-  // Display newest solve first
   soloSolves.slice().reverse().forEach((solve, reversedIndex) => {
     const tr = document.createElement("tr");
 
-    // Compute actual index in original order
     const actualIndex = soloSolves.length - reversedIndex - 1;
-
-    const raw = solve.time;
-    const penalty = solve.dnf ? "DNF" : (solve.plusTwo ? "+2" : "");
-    const final = formatSoloTime(solve);
+    const finalTime = solve.dnf ? "DNF" : formatTimeValue(solve.plusTwo ? solve.time + 2 : solve.time);
     const ao5 = getAoNAt(soloSolves, 5, actualIndex);
     const ao12 = getAoNAt(soloSolves, 12, actualIndex);
 
-    const currentFinal = solve.dnf ? Infinity : (solve.plusTwo ? solve.time + 2 : solve.time);
-    if (currentFinal === bestFinalTime) {
+    const currentFinalValue = solve.dnf ? Infinity : (solve.plusTwo ? solve.time + 2 : solve.time);
+    if (currentFinalValue === bestFinalTime) {
       tr.classList.add("pb-highlight");
     }
 
+    // Set data-index for future menu operations
+    tr.dataset.index = actualIndex;
+
     tr.innerHTML = `
       <td>${actualIndex + 1}</td>
-      <td>${formatTimeValue(raw)}</td>
-      <td>${penalty}</td>
-      <td>${final}</td>
+      <td>${finalTime}</td>
       <td>${ao5 !== null ? formatTimeValue(ao5) : "-"}</td>
       <td>${ao12 !== null ? formatTimeValue(ao12) : "-"}</td>
+      <td class="solve-menu-cell">
+        <div class="dot-menu">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <div class="menu-options hidden">
+          <div class="menu-item" data-action="+2">+2</div>
+          <div class="menu-item" data-action="dnf">DNF</div>
+          <div class="menu-item" data-action="delete">Delete</div>
+        </div>
+      </td>
     `;
+
+    // Toggle menu visibility
+    const dotMenu = tr.querySelector(".dot-menu");
+    const menuOptions = tr.querySelector(".menu-options");
+
+    dotMenu.addEventListener("click", () => {
+      menuOptions.classList.toggle("hidden");
+    });
+
+    // Handle menu item clicks
+    tr.querySelectorAll(".menu-item").forEach(item => {
+      item.addEventListener("click", () => {
+        const action = item.dataset.action;
+        handleSolveAction(action, actualIndex);
+        menuOptions.classList.add("hidden");
+      });
+    });
 
     tbody.appendChild(tr);
   });
 }
+
+function generateFallbackScramble() {
+  const moves = ["R", "L", "U", "D", "F", "B"];
+  const modifiers = ["", "'", "2"];
+  let scramble = [];
+  let lastMove = "";
+
+  for (let i = 0; i < 20; i++) {
+    let move;
+    do {
+      move = moves[Math.floor(Math.random() * moves.length)];
+    } while (move === lastMove);
+    lastMove = move;
+    const modifier = modifiers[Math.floor(Math.random() * modifiers.length)];
+    scramble.push(move + modifier);
+  }
+
+  return scramble.join(" ");
+}
+
+
+function handleSolveAction(action, index) {
+  const solve = soloSolves[index];
+  if (!solve) return;
+
+  switch (action) {
+    case "+2":
+      if (!solve.dnf && !solve.plusTwo) {
+        solve.plusTwo = true;
+      }
+      break;
+    case "dnf":
+      if (!solve.dnf) {
+        solve.dnf = true;
+        solve.plusTwo = false; // Remove +2 if DNF is applied
+      }
+      break;
+    case "delete":
+      // Animate row removal
+      const rows = document.querySelectorAll("#history-body tr");
+      const targetRow = Array.from(rows).find(row => Number(row.dataset.index) === index);
+      if (targetRow) {
+        targetRow.classList.add("revealed"); // triggers CSS animation
+        setTimeout(() => {
+          soloSolves.splice(index, 1);
+          updateSolveHistory();
+        }, 300); // match CSS transition duration
+      } else {
+        // fallback if row not found
+        soloSolves.splice(index, 1);
+        updateSolveHistory();
+      }
+      return;
+  }
+
+  updateSolveHistory();
+}
+
 
 
 
@@ -709,11 +791,12 @@ document.addEventListener("keyup", (e) => {
     }
 
     if (isSolo && !running && doneSolving) {
-      setTimeout(() => {
-        const newScramble = generateScramble();
+      setTimeout(async () => {
+        const newScramble = await generateScramble();
         typeWithCursor(scrambleDisplay, newScramble, 18, false);
         doneSolving = false;
       }, 400);
+
     }
 
     heldSpace = false;
@@ -755,8 +838,8 @@ if (isMobile) {
     }
 
     if (isSolo && !running && doneSolving) {
-      setTimeout(() => {
-        const newScramble = generateScramble();
+      setTimeout(async () => {
+        const newScramble = await generateScramble();
         typeWithCursor(scrambleDisplay, newScramble, 18, false);
         doneSolving = false;
       }, 400);
@@ -771,26 +854,22 @@ if (isMobile) {
 }
 
 
+
 //singleplayer functions
-function generateScramble(length = 20) {
-  const moves = ["U", "D", "L", "R", "F", "B"];
-  const suffixes = ["", "'", "2"];
-  const scramble = [];
-
-  while (scramble.length < length) {
-    const move = moves[Math.floor(Math.random() * moves.length)];
-    const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
-    const lastMove = scramble.at(-1)?.[0];
-    const secondLast = scramble.at(-2)?.[0];
-
-    // Avoid repeating the same face or doing A A'
-    if (move !== lastMove && !(secondLast === move && lastMove === move + "'")) {
-      scramble.push(move + suffix);
+async function generateScramble() {
+  if (window.getRandomScramble) {
+    try {
+      return await window.getRandomScramble();
+    } catch (e) {
+      console.error("Failed to get scramble from cubing/scramble:", e);
     }
   }
-
-  return scramble.join(" ");
+  return generateFallbackScramble(); // optional fallback
 }
+
+
+
+
 function handleRoomJoined({ scramble, token: receivedToken, leader }) {
   console.log("[CLIENT] Joined room (solo or multi)!");
   console.log("[CLIENT] Scramble received:", scramble);
@@ -828,11 +907,18 @@ function handleRoomJoined({ scramble, token: receivedToken, leader }) {
 //if SOLO MODE::::
 if (isSolo) {
   console.log("SOLO MODE LOADED");
-  const scramble = generateScramble();
-  document.getElementById("live-averages")?.classList.remove("hidden");
-  handleRoomJoined({ scramble, token: generateSafeToken(), leader: null });
-  document.getElementById("leaderBoardID")?.remove();
-  copyCodeContainer?.remove();
-  loadSolvesFromStorage(); 
 
+  generateScramble().then(scramble => {
+    document.getElementById("live-averages")?.classList.remove("hidden");
+
+    handleRoomJoined({
+      scramble,
+      token: generateSafeToken(),
+      leader: null
+    });
+
+    document.getElementById("leaderBoardID")?.remove();
+    copyCodeContainer?.remove();
+    loadSolvesFromStorage();
+  });
 }

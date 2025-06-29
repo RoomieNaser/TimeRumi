@@ -41,6 +41,7 @@ app.get("/room/:roomCode", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "room.html"));
 });
 
+
 //io.on connection stuff
 io.on("connection", (socket) => {
     console.log("[SOCKET] New connection:", socket.id);

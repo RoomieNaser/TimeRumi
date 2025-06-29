@@ -1253,3 +1253,63 @@ body.dark-mode .live-avg .label {
   background-color: rgba(0, 255, 0, 0.05);
   transition: box-shadow 0.3s ease, background-color 0.3s ease;
 }
+
+.solve-menu-cell {
+  position: relative;
+  width: 40px;
+  text-align: center;
+}
+
+.dot-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  gap: 2px;
+  padding: 4px;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  background: white;
+  border-radius: 50%;
+}
+
+.menu-options {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: #160224;
+  border: 1px solid #444;
+  box-shadow: 0 0 8px rgba(164, 255, 252, 0.7);
+  border-radius: 4px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  width: 60px;
+  margin-top: 4px;
+  padding: 4px 0;
+}
+
+.menu-item {
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: white;
+}
+
+.menu-item:hover {
+  background-color: #333;
+}
+
+.hidden {
+  display: none;
+}
+
+tr.revealed {
+  transform: translateX(100%);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}

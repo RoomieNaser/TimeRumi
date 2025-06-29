@@ -157,17 +157,17 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>Raw</th>
-                <th>Penalty</th>
-                <th>Final</th>
+                <th>Time</th>
                 <th>ao5</th>
                 <th>ao12</th>
+                <th>Options</th> <!-- menu column -->
               </tr>
             </thead>
             <tbody id="history-body">
               <!-- History rows will go here -->
             </tbody>
           </table>
+
         </div>
 
 
@@ -184,6 +184,17 @@
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script src="/global.js" defer></script>
+<script type="module">
+  import { randomScrambleForEvent } from "https://cdn.cubing.net/v0/js/cubing/scramble";
+
+  window.getRandomScramble = async () => {
+    const alg = await randomScrambleForEvent("333");
+    return alg.toString();
+  };
+</script>
+
+
+
   <script src="/roomLogic.js" defer></script>
   <script src="/chat.js" defer></script>
 </body>
