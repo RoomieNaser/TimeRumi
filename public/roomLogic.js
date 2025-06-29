@@ -772,23 +772,25 @@ if (isMobile) {
 
 
 //singleplayer functions
-function generateScramble() {
-  // If you're not using cube-scrambler in-browser yet
-  const moves = ["R", "L", "U", "D", "F", "B"];
+function generateScramble(length = 20) {
+  const moves = ["U", "D", "L", "R", "F", "B"];
   const suffixes = ["", "'", "2"];
-  let scramble = [];
-  let lastMove = "";
+  const scramble = [];
 
-  while (scramble.length < 20) {
-    let move = moves[Math.floor(Math.random() * moves.length)];
-    if (move !== lastMove) {
-      lastMove = move;
-      scramble.push(move + suffixes[Math.floor(Math.random() * 3)]);
+  while (scramble.length < length) {
+    const move = moves[Math.floor(Math.random() * moves.length)];
+    const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+    const lastMove = scramble.at(-1)?.[0];
+    const secondLast = scramble.at(-2)?.[0];
+
+    // Avoid repeating the same face or doing A A'
+    if (move !== lastMove && !(secondLast === move && lastMove === move + "'")) {
+      scramble.push(move + suffix);
     }
   }
+
   return scramble.join(" ");
 }
-
 function handleRoomJoined({ scramble, token: receivedToken, leader }) {
   console.log("[CLIENT] Joined room (solo or multi)!");
   console.log("[CLIENT] Scramble received:", scramble);
