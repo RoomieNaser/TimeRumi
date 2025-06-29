@@ -130,6 +130,11 @@ io.on("connection", (socket) => {
       const player = db.prepare("SELECT * FROM players WHERE token = ? AND room_code = ?").get(token, roomCode);
       if (!player) return;
 
+      if (!scramble || typeof scramble !== 'string') {
+        console.log("Solve ignored: invalid scramble.");
+        return;
+      }
+
       const trimmedScramble = scramble.trim();
 
       // Prevent duplicate submissions for the same scramble
@@ -162,7 +167,12 @@ io.on("connection", (socket) => {
         return;
       }
 
+      if (!scramble || typeof scramble !== 'string') {
+        console.log("Penalty ignored: invalid scramble.");
+        return;
+      }
       const trimmedScramble = scramble.trim();
+
 
       // Check if solve exists
       const solve = db.prepare(`
