@@ -644,16 +644,16 @@ function formatTime(ms, { precision = 2, compact = false } = {}) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = (totalSeconds % 60).toFixed(precision);
 
-  let result = minutes > 0
-    ? `${minutes}:${seconds.padStart(5, '0')}`
-    : seconds.padStart(precision + 3, '0');
-
-  if (compact && minutes === 0 && result.startsWith("0")) {
-    result = result.slice(1);
+  if (minutes > 0) {
+    const [secInt, secDec] = seconds.split(".");
+    const paddedSecInt = secInt.padStart(2, "0");
+    return `${minutes}:${paddedSecInt}.${secDec}`;
   }
 
-  return result;
+  let result = seconds.padStart(precision + 3, '0');
+  return compact && result.startsWith("0") ? result.slice(1) : result;
 }
+
 
 
 function startTimer() {

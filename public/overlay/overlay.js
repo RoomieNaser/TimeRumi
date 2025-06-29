@@ -50,5 +50,12 @@ if (!roomCode) {
 
   socket.on("leaderboardUpdate", (top5) => {
     displayLeaderboard(top5.slice(0, 5));
+    socket.on("scrambleUpdated", () => {
+      const top5El = document.getElementById('top5');
+      top5El.innerHTML = '';
+      previousTop5 = [];
+    });
+
   });
 }
+
