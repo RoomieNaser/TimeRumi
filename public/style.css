@@ -44,6 +44,7 @@ body {
   width: clamp(24px, 8vw, 32px);
   height: auto;
   cursor: pointer;
+  opacity: 0.6;
   transition: opacity 0.2s ease;
 }
 .dark-toggle {
@@ -52,6 +53,7 @@ body {
   width: clamp(50px, 8vw, 32px);
   height: auto;
   cursor: pointer;
+  opacity: 0.6;
   transition: opacity 0.2s ease;
 }
 
@@ -60,6 +62,7 @@ body {
   width: 50px;
   height: auto;
   cursor: pointer;
+  opacity: 0.6;
   transition: opacity 0.2s ease;
   z-index: 100;
 }
@@ -68,7 +71,7 @@ body {
 .dark-toggle { top: 32px; left: 165px; }
 
 .logo:hover, .hamburger:hover, .dark-toggle:hover {
-  opacity: 0.7;
+  opacity: 1;
 }
 
 /* === COPY ROOM CODE BANNER === */
@@ -124,6 +127,98 @@ body.timing .leaderboard,
 body.timing .scramble-section {
   display: none !important;
 }
+
+
+/* SETTINGS MODAL */
+
+#settings-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 200;
+  background: rgba(20, 20, 20, 0.9);
+  backdrop-filter: blur(12px);
+  border-radius: 1rem;
+  padding: 2rem;
+  width: clamp(250px, 80vw, 400px);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  color: white;
+  font-family: 'Roboto', sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+#settings-modal.hidden {
+  display: none;
+}
+
+#settings-modal h2 {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  text-align: center;
+  color: #ffffff;
+}
+
+#settings-modal label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1rem;
+  color: #ccc;
+}
+
+#settings-modal select,
+#settings-modal input[type="checkbox"] {
+  margin-left: 1rem;
+  transform: scale(1.1);
+}
+
+#closeSettingsBtn {
+  align-self: center;
+  padding: 0.5rem 1.5rem;
+  background: #444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+#closeSettingsBtn:hover {
+  background: #666;
+}
+
+/* SETTINGS ICON BUTTON (optional) */
+.settings-icon {
+  position: absolute;
+  top: clamp(28px, 2vh, 32px);
+  right: clamp(16px, 2vw, 32px);
+  z-index: 100;
+}
+
+.settings-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.settings-btn img {
+  width: clamp(24px, 8vw, 32px);
+  height: auto;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.settings-btn img:hover {
+  opacity: 1;
+}
+
+
+
 
 /* === SCRAMBLE SECTION === */
 .scramble-section {
@@ -408,8 +503,13 @@ body.timing .timer-display {
   transition: background-color 0.2s ease;
 }
 
+.post-options button:focus {
+  outline: none;
+}
+
 .post-options button:hover {
   background-color: #ddd;
+  box-shadow: 0 0 6px rgba(0, 255, 242, 0.5);
 }
 
 body.dark-mode .post-options button {
@@ -419,6 +519,7 @@ body.dark-mode .post-options button {
 
 body.dark-mode .post-options button:hover {
   background-color: #333;
+  box-shadow: 0 0 6px rgba(210, 86, 255, 0.5);
 }
 
 
@@ -948,8 +1049,8 @@ body.ready #touchArea {
   bottom: 0;
   left: -100%;
   width: 30%;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(1px);
   box-shadow: none;
   color: white;
   z-index: 9999;
@@ -1306,6 +1407,7 @@ body.dark-mode .live-avg .label {
 
 .hidden {
   display: none;
+  cursor: default;
 }
 
 tr.revealed {

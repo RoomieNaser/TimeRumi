@@ -49,7 +49,7 @@ if (!roomCode) {
   socket.emit("joinRoom", { roomCode, nickname, token: fakeToken });
 
   socket.on("leaderboardUpdate", (top5) => {
-    displayLeaderboard(top5.slice(0, 5));
+    displayLeaderboard(top5.slice(0, 10));
     socket.on("scrambleUpdated", () => {
       const top5El = document.getElementById('top5');
       top5El.innerHTML = '';

@@ -340,7 +340,7 @@ function appendChatMessage(name, message, type = "user") {
   if (type === "system") {
     msgElem.classList.add("chat-entry", "system-message");
     msgElem.textContent = message;
-    document.querySelector('.chat-messages').append(msgElem);
+    document.querySelector('.chat-messages').prepend(msgElem);
     return;
   }
 
@@ -704,6 +704,14 @@ function stopTimer() {
   }
 
   currentPenalty = null;
+
+  if (isSolo) {
+    setTimeout(async () => {
+      const newScramble = await generateScramble();
+      typeWithCursor(scrambleDisplay, newScramble, 18, false);
+      doneSolving = false;
+    }, 400);
+  }
 }
 
 
@@ -765,6 +773,14 @@ document.getElementById("dnfBtn").addEventListener("click", () => {
 
 document.addEventListener("keydown", (e) => {
   if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") return;
+
+  // Stop timer on ANY key if running
+  if (running && e.code !== "F12") { 
+    stopTimer();
+    e.preventDefault();
+    return;
+  }
+
   if (e.code === "Space") {
     if (!heldSpace) {
       heldSpace = true;
@@ -788,15 +804,6 @@ document.addEventListener("keyup", (e) => {
     if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") return;
     if (readyToStart && !running) {
       startTimer();
-    }
-
-    if (isSolo && !running && doneSolving) {
-      setTimeout(async () => {
-        const newScramble = await generateScramble();
-        typeWithCursor(scrambleDisplay, newScramble, 18, false);
-        doneSolving = false;
-      }, 400);
-
     }
 
     heldSpace = false;
@@ -857,14 +864,14 @@ if (isMobile) {
 
 //singleplayer functions
 async function generateScramble() {
-  if (window.getRandomScramble) {
-    try {
-      return await window.getRandomScramble();
-    } catch (e) {
-      console.error("Failed to get scramble from cubing/scramble:", e);
-    }
+  try {
+    const res = await fetch("/solo-scramble");
+    const data = await res.json();
+    return data.scramble;
+  } catch (err) {
+    console.error("Error fetching scramble from server, weird.", err);
+    return generateFallbackScramble();
   }
-  return generateFallbackScramble(); // optional fallback
 }
 
 

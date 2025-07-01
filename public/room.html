@@ -24,6 +24,12 @@
         <img src="/assets/copyLight.svg" id="copyIcon" class="copy-icon" title="Copy code">
       </div>
 
+      <div class="settings-icon" id="settingsIcon">
+        <button class="settings-btn">
+          <img src="/assets/settings.svg" />
+        </button>
+      </div>
+
       <div class="scramble-section">
         <div class="scramble-label-container">
           <h1 class="current-label typing-cursor" id="scramble-label">Current Scramble:</h1>
@@ -52,9 +58,7 @@
 
       <div id="response" class="response-message"></div>
 
-      <a href="https://www.youtube.com/c/RoomixCubing" target="_blank">
-        <img src="/assets/logo.png" id="ytlogo" class="logo">
-      </a>
+      
     </div>
 
       <div id="timerDisplay" class="timer-display">0.00</div>
@@ -173,6 +177,44 @@
 
       </div>
     </div>
+
+    <div id="settings-modal" class="hidden">
+      <div class="settings-content">
+        <h2>Settings</h2>
+
+        <!-- Timer Font Selection -->
+        <label for="fontSelect">Timer Font:</label>
+        <select id="fontSelect">
+          <option value="Roboto">Roboto</option>
+          <option value="Courier New">Courier New</option>
+          <option value="Orbitron">Orbitron</option>
+          <option value="Audiowide">Audiowide</option>
+          <option value="Share Tech Mono">Share Tech Mono</option>
+        </select>
+
+        <!-- Transparency Mode -->
+        <label>
+          <input type="checkbox" id="transparencyToggle">
+          Enable Transparency Mode
+        </label>
+
+        <!-- Animation Toggle -->
+        <label>
+          <input type="checkbox" id="animationToggle">
+          Enable Timer Animation
+        </label>
+
+        <!-- Remove Blobs Toggle -->
+        <label>
+          <input type="checkbox" id="blobsToggle">
+          Hide Background Blobs
+        </label>
+
+        <!-- Close Button -->
+        <button id="closeSettingsBtn">Close</button>
+      </div>
+    </div>
+
 
 
 

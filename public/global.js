@@ -1,8 +1,8 @@
 //basic ui stuff here
 const hamIcon = document.getElementById("ham");
 const toggler = document.getElementById("darkModeToggle");
-const ytLogo = document.getElementById("ytlogo");
 const copyLogo = document.getElementById("copyIcon");
+const settings = document.getElementById("settingsIcon");
 const audio = document.getElementById("clickAudio");
 
 hamIcon.addEventListener("click", () => {
@@ -20,9 +20,9 @@ toggler.addEventListener("click", () => {
 
   //Icon change
   toggler.src = isDark ? "/assets/darkMode.svg" : "/assets/lightMode.svg";
-  ytLogo.src = isDark ? "/assets/logoDark.png" : "/assets/logo.png";
   hamIcon.src = isDark ? "/assets/homeDark.svg" : "/assets/homeLight.svg";
   copyLogo.src = isDark ? "/assets/copyDark.svg" : "/assets/copyLight.svg";
+  settings.src = isDark ? "/assets/settings-dark.svg" : "/assets/settings.svg";
 });
 
 //DARK RESTORATION SPELL
@@ -59,7 +59,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   //ICON RESTORATION SPELL
   toggler.src = isDark ? "/assets/darkMode.svg" : "/assets/lightMode.svg";
-  ytLogo.src = isDark ? "/assets/logoDark.png" : "/assets/logo.png";
   hamIcon.src = isDark ? "/assets/homeDark.svg" : "/assets/homeLight.svg";
   copyLogo.src = isDark ? "/assets/copyDark.svg" : "/assets/copyLight.svg";
+  settings.src = isDark ? "/assets/settings-dark.svg" : "/assets/settings.svg";
 });

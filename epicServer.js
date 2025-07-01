@@ -1,6 +1,9 @@
 //required modules and stuffs
 const express = require("express");
 const scrambler = require("cube-scrambler")();
+//switching to a state scrambler
+const Cube = require("cubejs");
+Cube.initSolver();
 const crypto = require("crypto");
 const http = require("http");
 const app = express();
@@ -32,6 +35,25 @@ function generateRoomCode() {
   return code;
 }
 
+function generateRandomStateScramble() {
+  const scrambleMoves = scrambler.scramble(); //needed to use scrambler anyway lmao
+  const cube = Cube.fromString("UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB");
+
+  scrambleMoves.forEach(move => cube.move(move));
+
+  const solution = cube.solve(); 
+
+  const reversed = solution
+    .split(" ")
+    .reverse()
+    .map(move => {
+      if (move.endsWith("'")) return move.slice(0, -1);
+      if (move.endsWith("2")) return move;
+      return move + "'";
+    });
+
+  return reversed.join(" ");
+}
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
@@ -40,6 +62,13 @@ app.get("/", (req, res) => {
 app.get("/room/:roomCode", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "room.html"));
 });
+
+app.get("/solo-scramble", (req, res) => {
+  const scramble = generateRandomStateScramble();
+  console.log(`[SOLO SCRAMBLE] Sent: ${scramble}`);
+  res.json({ scramble });
+});
+
 
 
 //io.on connection stuff
@@ -50,7 +79,7 @@ io.on("connection", (socket) => {
     socket.on("createRoom", ({nickname}) => {
       const roomCode = generateRoomCode();
       const token = crypto.randomUUID().replace(/-/g, "");
-      const scramble = scrambler.scramble().join (" ");
+      const scramble = generateRandomStateScramble();
 
       db.prepare(`INSERT INTO rooms (code, leader, scramble, created_at) VALUES (?, ?, ?, ?)`)
         .run(roomCode, token, scramble, Date.now());
@@ -69,7 +98,7 @@ io.on("connection", (socket) => {
       if (room.leader !== token) return;
 
 
-      const newScramble = scrambler.scramble().join(" ");
+      const newScramble = generateRandomStateScramble();
       db.prepare("UPDATE rooms SET scramble = ? WHERE code = ?").run(newScramble, roomCode);
       io.to(roomCode).emit("scrambleUpdated", newScramble);
     });
