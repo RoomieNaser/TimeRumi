@@ -6,6 +6,7 @@ const Cube = require("cubejs");
 Cube.initSolver();
 const crypto = require("crypto");
 const http = require("http");
+const sanitizeHtml = require('sanitize-html');
 const app = express();
 const {Server} = require("socket.io");
 const path = require("path");
@@ -305,31 +306,29 @@ io.on("connection", (socket) => {
       console.log("[SERVER] Received chatMessage:", { token, message });
 
       // Lookup player info
-      const player = db.prepare(`
-        SELECT players.name, players.room_code 
-        FROM players 
-        WHERE token = ?
-      `).get(token);
+      const player = db.prepare("SELECT name FROM players WHERE token = ?").get(token);
+      if (!player) return;
 
-      if (!player) {
-        console.log("[SERVER] Chat message ignored - no matching player found in DB.");
-        return;
-      }
+      // Sanitize the message to prevent XSS
+      const sanitizedMessage = sanitizeHtml(message, {
+        allowedTags: [], // No HTML tags allowed
+        allowedAttributes: {},
+        allowedSchemes: ['http', 'https'],
+        transformTags: {
+          '*': sanitizeHtml.simpleText
+        }
+      });
 
-      const { name, room_code: roomCode } = player;
+      // Store sanitized message in database
+      db.prepare(`INSERT INTO chat (room_code, name, message, timestamp) VALUES (?, ?, ?, ?)`)
+        .run(socket.data.roomCode, player.name, sanitizedMessage, Date.now());
 
-      // Save message to DB
-      db.prepare(`
-        INSERT INTO chat (room_code, name, message, timestamp)
-        VALUES (?, ?, ?, ?)
-      `).run(roomCode, name, message, Date.now());
-
-      // Broadcast to room
-      console.log(`[SERVER] Broadcasting message from ${name} in room ${roomCode}`);
-      io.to(roomCode).emit("chatMessage", { name, message });
+      // Broadcast sanitized message to all clients in the room
+      io.to(socket.data.roomCode).emit("chatMessage", {
+        name: player.name,
+        message: sanitizedMessage
+      });
     });
-
-
   });
 
 server.listen(PORT, () => {
