@@ -508,15 +508,6 @@ if (!isSolo) {
     doneSolving = false;
 
     //chat logic
-    document.getElementById("chatForm").addEventListener('submit', (e) => {
-      e.preventDefault();
-      const message = document.querySelector('#chatForm input').value.trim();
-      if (message) {
-        socket.emit('chatMessage', { token: receivedToken, message });
-        document.querySelector('#chatForm input').value = '';
-      }
-    });
-
     socket.on("chatMessage", ({ name, message, type }) => {
       appendChatMessage(name, message, type);
 
@@ -534,6 +525,16 @@ if (!isSolo) {
     console.log("[CLIENT] Received chat history:", messages);
     for (const { name, message, type } of messages) {
       appendChatMessage(name, message, type);
+    }
+  });
+
+  // Set up chat form submission
+  document.getElementById("chatForm")?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const message = document.querySelector('#chatForm input').value.trim();
+    if (message && window.userToken) {
+      socket.emit('chatMessage', { token: window.userToken, message });
+      document.querySelector('#chatForm input').value = '';
     }
   });
 
