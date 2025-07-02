@@ -381,12 +381,6 @@ function appendChatMessage(name, message, type = "user") {
 
   msgElem.classList.add('chat-entry', isOwn ? 'own-message' : 'other-message');
   document.querySelector('.chat-messages').prepend(msgElem);
-
-  // Scroll to latest message
-  const chatMessages = document.querySelector('.chat-messages');
-  if (chatMessages) {
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
 }
 
 //listener for copying overlay link
