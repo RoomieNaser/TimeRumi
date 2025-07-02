@@ -302,15 +302,14 @@ io.on("connection", (socket) => {
       }
     });
 
-
-
+    // Chat message handler
     socket.on("chatMessage", ({ token, message }) => {
       console.log("[SERVER] Received chatMessage:", { token, message });
 
       // Check message length and nuke the message if its too long
       if (message.length > MAX_MESSAGE_LENGTH) {
         console.log(`[SERVER] Message too long from ${token} (${message.length} chars)`);
-        socket.emit("chatError", { error: "Message too long. Please keep it under 200 characters." });
+        socket.emit("chatError", { error: `Message too long. Maximum length is ${MAX_MESSAGE_LENGTH} characters.` });
         return;
       }
 
@@ -318,8 +317,9 @@ io.on("connection", (socket) => {
       const lastMessageTime = messageTimestamps.get(token);
       const currentTime = Date.now();
       if (lastMessageTime && (currentTime - lastMessageTime) < MESSAGE_RATE_LIMIT) {
-        console.log(`[SERVER] Rate limit exceeded from ${token}`);
-        socket.emit("chatError", { error: "Please wait a moment before sending another message." });
+        const waitTime = ((MESSAGE_RATE_LIMIT - (currentTime - lastMessageTime)) / 1000).toFixed(2);
+        console.log(`[SERVER] Rate limit exceeded from ${token}. Wait ${waitTime} seconds.`);
+        socket.emit("chatError", { error: `Please wait ${waitTime} more seconds before sending another message.` });
         return;
       }
 
@@ -328,7 +328,10 @@ io.on("connection", (socket) => {
 
       // Lookup player info
       const player = db.prepare("SELECT name FROM players WHERE token = ?").get(token);
-      if (!player) return;
+      if (!player) {
+        console.log(`[SERVER] Player not found for token ${token}`);
+        return;
+      }
 
       // Sanitize HTML
       const sanitized = sanitizeHtml(message, {

@@ -379,9 +379,14 @@ function appendChatMessage(name, message, type = "user") {
       ${name}
     </span>: ${parsedMsg}`;
 
-
   msgElem.classList.add('chat-entry', isOwn ? 'own-message' : 'other-message');
   document.querySelector('.chat-messages').prepend(msgElem);
+
+  // Scroll to latest message
+  const chatMessages = document.querySelector('.chat-messages');
+  if (chatMessages) {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
 }
 
 //listener for copying overlay link
@@ -532,9 +537,32 @@ if (!isSolo) {
   document.getElementById("chatForm")?.addEventListener('submit', (e) => {
     e.preventDefault();
     const message = document.querySelector('#chatForm input').value.trim();
+    const input = document.querySelector('#chatForm input');
     if (message && window.userToken) {
       socket.emit('chatMessage', { token: window.userToken, message });
-      document.querySelector('#chatForm input').value = '';
+      // Add a small delay before clearing input to show the message was sent
+      setTimeout(() => {
+        input.value = '';
+      }, 100);
+    } else if (!message) {
+      // Show error if empty message
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'chat-error';
+      errorDiv.textContent = 'Cannot send empty message.';
+      errorDiv.style.animation = 'fadeout 5.5s forwards';
+      
+      const chatForm = document.querySelector('#chatForm');
+      errorDiv.style.position = 'absolute';
+      errorDiv.style.top = '0';
+      errorDiv.style.left = '0';
+      errorDiv.style.right = '0';
+      errorDiv.style.zIndex = '1';
+      
+      chatForm.insertBefore(errorDiv, chatForm.firstChild);
+      
+      setTimeout(() => {
+        errorDiv.remove();
+      }, 5500);
     }
   });
 
@@ -544,7 +572,20 @@ if (!isSolo) {
     errorDiv.className = 'chat-error';
     errorDiv.textContent = error;
     errorDiv.style.animation = 'fadeout 5.5s forwards';
-    document.querySelector('#chatForm').appendChild(errorDiv);
+    
+    // Position error message above chat input
+    const chatForm = document.querySelector('#chatForm');
+    errorDiv.style.position = 'absolute';
+    errorDiv.style.top = '0';
+    errorDiv.style.left = '0';
+    errorDiv.style.right = '0';
+    errorDiv.style.zIndex = '1';
+    
+    // Remove any existing error messages
+    const existingErrors = chatForm.querySelectorAll('.chat-error');
+    existingErrors.forEach(err => err.remove());
+    
+    chatForm.insertBefore(errorDiv, chatForm.firstChild);
     
     // Remove the error message after animation
     setTimeout(() => {

@@ -79,7 +79,7 @@ body {
 /* === CHAT ERROR STYLES === */
 .chat-error {
   position: absolute;
-  bottom: 0;
+  top: 0;
   left: 0;
   right: 0;
   margin: 0;
@@ -91,7 +91,11 @@ body {
   animation: fadeout 5.5s forwards;
   z-index: 100;
   pointer-events: none;
-  transform: translateY(-120%);
+  transform: translateY(0);
+}
+
+.chat-error:not(:first-child) {
+  margin-top: 8px;
 }
 
 @keyframes fadeout {
