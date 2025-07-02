@@ -72,7 +72,7 @@ app.get("/solo-scramble", (req, res) => {
 
 // Constants for chat limits
 const MAX_MESSAGE_LENGTH = 200; // Maximum length of a chat message
-const MESSAGE_RATE_LIMIT = 1200; // Minimum delay between messages in milliseconds (1.2 seconds)
+const MESSAGE_RATE_LIMIT = 1000; // Minimum delay between messages in milliseconds (1.2 seconds)
 const messageTimestamps = new Map(); // Use a map to track the time stamps of the chat
 
 //io.on connection stuff
