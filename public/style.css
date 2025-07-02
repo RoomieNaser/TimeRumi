@@ -75,6 +75,32 @@ body {
 }
 
 /* === COPY ROOM CODE BANNER === */
+
+/* === CHAT ERROR STYLES === */
+.chat-error {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background-color: #ff4444;
+  color: white;
+  font-size: 0.9rem;
+  animation: fadeout 5.5s forwards;
+  z-index: 100;
+  pointer-events: none;
+  transform: translateY(-120%);
+}
+
+@keyframes fadeout {
+  0% { opacity: 1; }
+  57.14% { opacity: 1; } /* 3 seconds (3/5.5) */
+  100% { opacity: 0; }
+}
+
+/* === COPY ROOM CODE BANNER === */
 .copy-code {
   position: absolute;
   top: clamp(3px, 6vw, 20px);

@@ -538,6 +538,20 @@ if (!isSolo) {
     }
   });
 
+  // Handle chat errors
+  socket.on('chatError', ({ error }) => {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'chat-error';
+    errorDiv.textContent = error;
+    errorDiv.style.animation = 'fadeout 5.5s forwards';
+    document.querySelector('#chatForm').appendChild(errorDiv);
+    
+    // Remove the error message after animation
+    setTimeout(() => {
+      errorDiv.remove();
+    }, 5500);
+  });
+
 
   // Copy to clipboard
   const copyIcon = document.getElementById("copyIcon");

@@ -70,7 +70,10 @@ app.get("/solo-scramble", (req, res) => {
   res.json({ scramble });
 });
 
-
+// Constants for chat limits
+const MAX_MESSAGE_LENGTH = 200; // Maximum length of a chat message
+const MESSAGE_RATE_LIMIT = 1200; // Minimum delay between messages in milliseconds (1.2 seconds)
+const messageTimestamps = new Map(); // Use a map to track the time stamps of the chat
 
 //io.on connection stuff
 io.on("connection", (socket) => {
@@ -301,32 +304,49 @@ io.on("connection", (socket) => {
 
 
 
-
     socket.on("chatMessage", ({ token, message }) => {
       console.log("[SERVER] Received chatMessage:", { token, message });
+
+      // Check message length and nuke the message if its too long
+      if (message.length > MAX_MESSAGE_LENGTH) {
+        console.log(`[SERVER] Message too long from ${token} (${message.length} chars)`);
+        socket.emit("chatError", { error: "Message too long. Please keep it under 200 characters." });
+        return;
+      }
+
+      // Check rate limit
+      const lastMessageTime = messageTimestamps.get(token);
+      const currentTime = Date.now();
+      if (lastMessageTime && (currentTime - lastMessageTime) < MESSAGE_RATE_LIMIT) {
+        console.log(`[SERVER] Rate limit exceeded from ${token}`);
+        socket.emit("chatError", { error: "Please wait a moment before sending another message." });
+        return;
+      }
+
+      // Update message timestamp
+      messageTimestamps.set(token, currentTime);
 
       // Lookup player info
       const player = db.prepare("SELECT name FROM players WHERE token = ?").get(token);
       if (!player) return;
 
-      // Sanitize the message to prevent XSS
-      const sanitizedMessage = sanitizeHtml(message, {
-        allowedTags: [], // No HTML tags allowed
+      // Sanitize HTML
+      const sanitized = sanitizeHtml(message, {
+        allowedTags: [],
         allowedAttributes: {},
-        allowedSchemes: ['http', 'https'],
-        transformTags: {
-          '*': sanitizeHtml.simpleText
-        }
+        allowedSchemes: ['http', 'https']
       });
 
       // Store sanitized message in database
-      db.prepare(`INSERT INTO chat (room_code, name, message, timestamp) VALUES (?, ?, ?, ?)`)
-        .run(socket.data.roomCode, player.name, sanitizedMessage, Date.now());
+      const stmt = db.prepare(
+        'INSERT INTO chat (room_code, name, message, timestamp) VALUES (?, ?, ?, ?)'
+      );
+      stmt.run(socket.data.roomCode, player.name, sanitized, Date.now());
 
       // Broadcast sanitized message to all clients in the room
       io.to(socket.data.roomCode).emit("chatMessage", {
         name: player.name,
-        message: sanitizedMessage
+        message: sanitized
       });
     });
   });
