@@ -17,6 +17,7 @@ const io = new Server(server);
 const PORT = process.env.PORT || 3000;
 
 app.get('/sitemap.xml', (req, res) => {
+  console.log("[SITEMAP] Custom /sitemap.xml route hit");
   res.type('application/xml');
   res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
 });
