@@ -1,0 +1,3 @@
+User-agent: *
+Disallow:
+Sitemap: https://timerumi.onrender.com/sitemap.xml
