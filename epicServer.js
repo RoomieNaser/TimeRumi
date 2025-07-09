@@ -1,10 +1,5 @@
 const path = require('path');
 
-app.get('/sitemap.xml', (req, res) => {
-  res.type('application/xml');
-  res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
-});
-
 //required modules and stuffs
 const express = require("express");
 const scrambler = require("cube-scrambler")();
@@ -23,6 +18,12 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static("public"));
 app.use(express.json());
+
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml');
+  res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
+});
+
 
 //database require
 const db = require("./database");
