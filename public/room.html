@@ -7,17 +7,21 @@
   <title>TimeRumi</title>
   <link rel="stylesheet" href="/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;450&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rubik&family=Montserrat&family=Nunito&family=Inter&family=Lato&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+
+
 </head>
 
 <body>
   
     <div class="ui-container">
       <audio id="clickAudio" src="/sounds/hamburgerSound.mp3" preload="auto"></audio>
+      <audio id="inspectionBeep" src="/sounds/beep.mp3" preload="auto"></audio>
+
       <a href="/" id="homeBtn">
         <img src="/assets/homeLight.svg" id="ham" class="hamburger">
       </a>
-
-      <img src="/assets/lightMode.svg" id="darkModeToggle" class="dark-toggle">
 
       <div class="copy-code" id = "copyCode">
         <span id="copyCodeDisplay">???</span>
@@ -26,7 +30,7 @@
 
       <div class="settings-icon" id="settingsIcon">
         <button class="settings-btn">
-          <img src="/assets/settings.svg" />
+          <img id="settingsID" src="/assets/settings.svg" />
         </button>
       </div>
 
@@ -61,7 +65,257 @@
       
     </div>
 
-      <div id="timerDisplay" class="timer-display">0.00</div>
+    <div id="timerDisplay" class="timer-display">0.00</div>
+    <div id="manualTimerDisplay" class="manual-timer hidden">
+      <input type="text" inputmode="numeric" placeholder="Enter Time" class="manual-input" id="manualInput" maxlength="5" />
+    </div>
+
+    <!--Settings area thingy-->
+    <div id="settingsOverlay" class="settings-overlay hidden">
+      <div class="settings-modal">
+        <div class="settings-sidebar">
+          <div class="settings-label-wrapper">
+            <svg class="settings-svg" width="40" height="40" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+              <path d="M10 3.75a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM17.25 4.5a.75.75 0 0 0 0-1.5h-5.5a.75.75 0 0 0 0 1.5h5.5ZM5 3.75a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5a.75.75 0 0 1 .75.75ZM4.25 17a.75.75 0 0 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5h1.5ZM17.25 17a.75.75 0 0 0 0-1.5h-5.5a.75.75 0 0 0 0 1.5h5.5ZM9 10a.75.75 0 0 1-.75.75h-5.5a.75.75 0 0 1 0-1.5h5.5A.75.75 0 0 1 9 10ZM17.25 10.75a.75.75 0 0 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5h1.5ZM14 10a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM10 16.25a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z" />
+            </svg>
+            <h2 class="settings-header">Settings</h2>
+          </div>
+
+
+          <ul>
+            <li class="active" data-target="appearanceSettings">Appearance</li>
+            <li data-target="timerSettings">Timer</li>
+            <li data-target="aboutPage">About</li>
+          </ul>
+        </div>
+        <div class="settings-content">
+          <div id="appearanceSettings" class="settings-tab-content">
+            <h2 class="timer-header">• How Do You Want Timerumi To Look?</h2>
+            <div class="settings-scrollable">
+              <!--Font stuff for Site-->
+              <div class="setting-block">
+                <div class="setting-info">
+                  <div class="setting-title">Font</div>
+                  <div class="setting-description">
+                    Picks the overall font for the entire website. This does not affect the timer font.
+                  </div>
+                </div>      
+                <div class="setting-control">
+                  <div class="epic-dropdown" id="fontDropdown">
+                    <div class="dropdown-selected">
+                      <span class="dropdown-text">Roboto</span>
+                      <svg class="drop-svg" width="24px" height="24px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                        <path fill-rule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                      </svg>
+                    </div>
+                    <ul class="dropdown-options">
+                      <li data-font="Roboto">Roboto</li>
+                      <li data-font="Rubik">Rubik</li>
+                      <li data-font="Montserrat">Montserrat</li>
+                      <li data-font="Nunito">Nunito</li>
+                      <li data-font="Inter">Inter</li>
+                      <li data-font="Lato">Lato</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>   
+              
+              <!--Focus Mode Toggle-->
+              <div class="setting-block">
+                <div class="setting-info">
+                  <div class="setting-title">Focus Mode</div>
+                  <div class="setting-description">Removes blobs and circles for better focus. Recommended for mobile users</div>
+                </div>
+                <label class="toggle-wrapper">
+                  <input type="checkbox" class="toggle-checkbox" id="focusToggle" />
+                  <div class="toggle-track">
+                    <div class="toggle-circle"></div>
+                  </div>
+                </label>
+              </div>
+
+
+              <!--Dark Mode Toggle-->
+              <div class="setting-block">
+                <div class="setting-info">
+                  <div class="setting-title">Dark Mode</div>
+                  <div class="setting-description">Complete darkness for an easy-to-view experience. Suggested if you like your eyes</div>
+                </div>
+                <label class="toggle-wrapper">
+                  <input type="checkbox" class="toggle-checkbox" id="settingsDarkToggle"/>
+                  <div class="toggle-track">
+                    <div class="toggle-circle"></div>
+                  </div>
+                </label>
+              </div>
+
+
+              <!--Show Leaderboard-->
+              <div class="setting-block">
+                <div class="setting-info">
+                  <div class="setting-title">Leaderboard</div>
+                  <div class="setting-description">Manages leaderboard visibility in multiplayer rooms. Turn on for better focus in competitions</div>
+                </div>
+                <label class="toggle-wrapper">
+                  <input type="checkbox" class="toggle-checkbox" id="toggle-leaderboard" checked/>
+                  <div class="toggle-track">
+                    <div class="toggle-circle"></div>
+                  </div>
+                </label>
+              </div>
+
+              <!--Show Averages-->
+              <div class="setting-block">
+                <div class="setting-info">
+                  <div class="setting-title">Averages</div>
+                  <div class="setting-description">Manages visibility of ao5 and ao12 in singleplayer mode. </div>
+                </div>
+                <label class="toggle-wrapper">
+                  <input type="checkbox" class="toggle-checkbox" id="toggle-averages" checked/>
+                  <div class="toggle-track">
+                    <div class="toggle-circle"></div>
+                  </div>
+                </label>
+              </div>
+
+
+
+
+
+
+
+            </div>
+          </div>
+         
+
+          <div id="timerSettings" class="settings-tab-content hidden">
+            <h2 class="timer-header">• How Should The Timer Function?</h2>
+            <div class="settings-scrollable">
+              <!--Font stuff for Timer-->
+              <div class="setting-block">
+                <div class="setting-info">
+                  <div class="setting-title">Font</div>
+                  <div class="setting-description">
+                    Picks the timer's font. This does not affect the website's font.
+                  </div>
+                </div>      
+                <div class="setting-control">
+                  <div class="epic-dropdown" id="timerFontDropdown">
+                    <div class="dropdown-selected">
+                      <span class="dropdown-text">Roboto</span>
+                      <svg class="drop-svg" width="24px" height="24px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                        <path fill-rule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                      </svg>
+                    </div>
+                    <ul class="dropdown-options">
+                      <li data-font="Roboto">Roboto</li>
+                      <li data-font="Digital-7">Digital-7</li>
+                      <li data-font="DS-Digital">DS-Digital</li>
+                      <li data-font="Quartz">Quartz</li>
+                      <li data-font="Orbitron">Orbitron</li>
+                      <li data-font="'VT323'">VT323</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>   
+
+              <!--Timer mode-->
+              <div class="setting-block">
+                <div class="setting-info">
+                  <div class="setting-title">Timer Mode</div>
+                  <div class="setting-description">
+                    Auto mode uses standard keyboard and touch inputs from devices. Manual mode requires you to solve on an external timer and input your times in a form
+                  </div>
+                </div>      
+                <div class="setting-control">
+                  <div class="epic-dropdown" id="timerModeDropdown">
+                    <div class="dropdown-selected">
+                      <span class="dropdown-text">Auto</span>
+                      <svg class="drop-svg" width="24px" height="24px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                        <path fill-rule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                      </svg>
+                    </div>
+                    <ul class="dropdown-options">
+                      <li>Auto</li>
+                      <li>Manual</li>
+                
+                    </ul>
+                  </div>
+                </div>
+              </div>   
+              
+              <!--Inspection toggle-->
+              <div class="setting-block">
+                <div class="setting-info">
+                  <div class="setting-title">WCA Inspection</div>
+                  <div class="setting-description">15 seconds of inspection time with reminder beeps at 8 and 12 seconds into inspection</div>
+                </div>
+                <label class="toggle-wrapper">
+                  <input type="checkbox" class="toggle-checkbox" id="toggle-inspection" />
+                  <div class="toggle-track">
+                    <div class="toggle-circle"></div>
+                  </div>
+                </label>
+              </div>
+
+
+              <!--Safety mode-->
+              <div class="setting-block">
+                <div class="setting-info">
+                  <div class="setting-title">Safety mode</div>
+                  <div class="setting-description">Timer doesn't immediately start on pressing space. Coming soon! </div>
+                </div>
+                <label class="toggle-wrapper">
+                  <input type="checkbox" class="toggle-checkbox" id="toggle-safety" checked />
+                  <div class="toggle-track">
+                    <div class="toggle-circle"></div>
+                  </div>
+                </label>
+              </div>
+
+
+
+
+
+
+            </div>
+          </div>
+
+          <div id="aboutPage" class="settings-tab-content hidden">
+            <h2 class="timer-header">• About Timerumi</h2>
+            <div class="settings-scrollable">
+              <h2 class="about-content">
+                <p>
+                  Hi! I'm Roomie from Roomix Cubing. I first created this project as a way for me to be able to livestream
+                  solving Rubik's cubes with my fans and having the best solves be shown on the leaderboard on an OBS overlay. Before this project, I had completely given up 
+                  on cubing in its entirety and had lost interest. But something about livestreaming with my viewers made something click. It was fun again!
+                  <br> <br>
+                  The first iteration was.. subpar to say the least. A barebones structure with only manual time entry. So with very basic knowledge on HTML and CSS, and pretty much zero 
+                  background in Javascript, I started to create what I now envisioned - a place where you can have competitions and hangout with your friends, all while at the comfort of your own home - 
+                  learning as I go.
+                  <br> <br>
+                  One thing led to another, and I ended up adding a singleplayer mode for it to be used as a proper timer, a chat for people to hangout in, a statistics panel. Started 
+                  designing things a lot more seriously, making sure the user gets the final say. Making everything feel intentional made the experience much nicer. For things I couldn't 
+                  wrap my mind around - @the_swest helped contribute immensely.
+                  <br><br>
+                  It all started to be fun again for me - cubing, development, design, streaming, making videos - everything. This project has given me a lot, but it has also taken a
+                  lot from me. I've built this alone in its entirety. There is a lot of time and energy that has gone into making my "Multiplayer Cubing" vision be brought into life. 
+                  If you appreciate what this website does for you - consider donating from the landing page - I would sincerely appreciate any rewards for the sleepless nights I spent building this website.
+                  <br><br>
+                  However, a better way to show support is spreading the word! I don't have enough reach to be able to bring this project to everyone who would appreciate it. Word of 
+                  mouth goes a long way! 
+                  
+                </p>  
+              </h2>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+      
 
         <div id="blob-left" class="blob">
         <img src="/assets/left_blob.png">
@@ -93,14 +347,14 @@
         <path fill-rule="evenodd" d="M11.78 9.78a.75.75 0 0 1-1.06 0L8 7.06 5.28 9.78a.75.75 0 0 1-1.06-1.06l3.25-3.25a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06Z" clip-rule="evenodd" />
       </svg>
     </div>
+
     
-    <div id="chat-panel">
+    
+    <div id="chat-panel" class="chat-docked">
+
       <div class="chat-header">
         <span>· TimeRumi Chat</span>
-        <button id="chatClose" class="close-chat"><svg width="30" height="30" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="size-6">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-  </svg>
-  </button>
+        <button id="chatClose" class="close-chat"></button>
       </div>
       <div class="chat-messages" id="chatMessages"></div>
       <form id="chatForm">
@@ -178,43 +432,6 @@
       </div>
     </div>
 
-    <div id="settings-modal" class="hidden">
-      <div class="settings-content">
-        <h2>Settings</h2>
-
-        <!-- Timer Font Selection -->
-        <label for="fontSelect">Timer Font:</label>
-        <select id="fontSelect">
-          <option value="Roboto">Roboto</option>
-          <option value="Courier New">Courier New</option>
-          <option value="Orbitron">Orbitron</option>
-          <option value="Audiowide">Audiowide</option>
-          <option value="Share Tech Mono">Share Tech Mono</option>
-        </select>
-
-        <!-- Transparency Mode -->
-        <label>
-          <input type="checkbox" id="transparencyToggle">
-          Enable Transparency Mode
-        </label>
-
-        <!-- Animation Toggle -->
-        <label>
-          <input type="checkbox" id="animationToggle">
-          Enable Timer Animation
-        </label>
-
-        <!-- Remove Blobs Toggle -->
-        <label>
-          <input type="checkbox" id="blobsToggle">
-          Hide Background Blobs
-        </label>
-
-        <!-- Close Button -->
-        <button id="closeSettingsBtn">Close</button>
-      </div>
-    </div>
-
 
 
 
@@ -236,7 +453,7 @@
 </script>
 
 
-
+  <script src="/chatScrollUtils.js" defer></script>
   <script src="/roomLogic.js" defer></script>
   <script src="/chat.js" defer></script>
 </body>

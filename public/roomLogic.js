@@ -16,7 +16,11 @@ const copyCodeDisplay = document.getElementById("copyCodeDisplay");
 const copyCodeContainer = document.getElementById("copyCode");
 const scrambleLabel = document.getElementById("scramble-label");
 const timerDisplay = document.getElementById("timerDisplay");
+const manualTimerDisplay = document.getElementById("manualTimerDisplay");
 const postSolveOptions = document.getElementById("postSolveOptions");
+
+
+
 
 //Variables for timer
 let timer = null;
@@ -27,6 +31,10 @@ let heldSpace = false;
 let doneSolving = false;
 let currentPenalty = null;
 let lastSubmittedScramble = null;
+let inspecting = false;
+let inspectionStart = null;
+let isManualMode = false;
+
 
 //Solo logic
 const soloSolves = [];
@@ -162,6 +170,8 @@ function updateSolveHistory() {
       item.addEventListener("click", () => {
         const action = item.dataset.action;
         handleSolveAction(action, actualIndex);
+        updateStatsPanel();
+        updateSolveHistory();
         menuOptions.classList.add("hidden");
       });
     });
@@ -198,12 +208,14 @@ function handleSolveAction(action, index) {
     case "+2":
       if (!solve.dnf && !solve.plusTwo) {
         solve.plusTwo = true;
+        saveSolvesToStorage();
       }
       break;
     case "dnf":
       if (!solve.dnf) {
         solve.dnf = true;
         solve.plusTwo = false; // Remove +2 if DNF is applied
+        saveSolvesToStorage();
       }
       break;
     case "delete":
@@ -214,6 +226,8 @@ function handleSolveAction(action, index) {
         targetRow.classList.add("revealed"); // triggers CSS animation
         setTimeout(() => {
           soloSolves.splice(index, 1);
+          saveSolvesToStorage();
+          updateStatsPanel();
           updateSolveHistory();
         }, 300); // match CSS transition duration
       } else {
@@ -307,6 +321,10 @@ function markLastSoloAsPenalty(type) {
     lastSolve.plusTwo = true;
     lastSolve.dnf = false;
   }
+
+  saveSolvesToStorage();
+  updateStatsPanel();
+  updateSolveHistory();
 }
 
 function formatSoloTime(solve) {
@@ -316,6 +334,92 @@ function formatSoloTime(solve) {
   return formatTimeValue(time); // 2 decimal places
 }
 
+
+function formatManualTime(input) {
+  // Remove all spaces
+  input = input.trim();
+
+  // Allow numbers like "12.34" or "1234"
+  if (!/^\d*\.?\d*$/.test(input)) return null;
+
+  // If input includes a decimal
+  if (input.includes('.')) {
+    const asNum = parseFloat(input);
+    if (isNaN(asNum) || asNum <= 0) return null;
+    return asNum.toFixed(2);
+  }
+
+  // No decimal — assume last 2 digits are hundredths
+  const len = input.length;
+  if (len === 0) return null;
+
+  let time = "";
+  if (len === 1) time = `0.0${input}`;
+  else if (len === 2) time = `0.${input}`;
+  else time = `${input.slice(0, len - 2)}.${input.slice(len - 2)}`;
+
+  const asNum = parseFloat(time);
+  if (isNaN(asNum) || asNum <= 0) return null;
+
+  return asNum.toFixed(2);
+}
+
+
+function setupManualInputHandler() {
+  const manualInput = document.getElementById("manualInput");
+  if (!manualInput) {
+    console.warn("manualInput element not found!");
+    return;
+  }
+
+  manualInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const raw = manualInput.value.trim();
+      if (!raw) return;
+
+      const formatted = formatManualTime(raw);
+
+      if (!formatted) {
+        manualInput.classList.add("invalid");
+        setTimeout(() => manualInput.classList.remove("invalid"), 500);
+        return;
+      }
+
+      manualInput.value = "";
+
+      if (isSolo) {
+        // Treat this like a solo solve
+        const finalTime = parseFloat(formatted);
+        soloSolves.push({
+          time: finalTime,
+          dnf: false,
+          plusTwo: false,
+          timeStamp: Date.now()
+        });
+        saveSolvesToStorage();
+        updateStatsPanel();
+        updateSolveHistory();
+
+        // Trigger new scramble after short delay
+        setTimeout(async () => {
+          const newScramble = await generateScramble();
+          typeWithCursor(scrambleDisplay, newScramble, 18, false);
+          doneSolving = false;
+        }, 400);
+      } else {
+        // Multiplayer logic
+        socket.emit("submitSolve", {
+          roomCode,
+          token,
+          time: parseFloat(formatted),
+          scramble: scrambleDisplay.textContent.trim(),
+          penalty: null
+        });
+        console.log("[Manual] Solve submitted:", formatted);
+      }
+    }
+  });
+}
 
 
 
@@ -516,6 +620,7 @@ if (!isSolo) {
       if (!isChatOpen) {
         triggerPulseAnimation();
       }
+      window.onNewChatMessage?.();
     });
 
 
@@ -540,12 +645,32 @@ if (!isSolo) {
 
 
   // Copy to clipboard
-  const copyIcon = document.getElementById("copyIcon");
-  copyIcon?.addEventListener("click", () => {
-    navigator.clipboard.writeText(roomCode).then(() => {
-      console.log("Room code copied!");
-    });
+const copyIcon = document.getElementById("copyIcon");
+
+copyIcon?.addEventListener("click", () => {
+  navigator.clipboard.writeText(roomCode).then(() => {
+    // Remove any existing message if one is already showing
+    const oldMsg = document.querySelector(".copied-message");
+    if (oldMsg) oldMsg.remove();
+
+    // Create the new message element
+    const copiedMsg = document.createElement("div");
+    copiedMsg.textContent = "Room code copied!";
+    copiedMsg.className = "copied-message";
+    document.body.appendChild(copiedMsg);
+
+    // Remove it after animation completes (1s based on your CSS)
+    setTimeout(() => copiedMsg.remove(), 1000);
+  }).catch(() => {
+    // Optional: handle copy failure with a similar toast
+    const errorMsg = document.createElement("div");
+    errorMsg.textContent = "Failed to copy room code.";
+    errorMsg.className = "copied-message";
+    document.body.appendChild(errorMsg);
+    setTimeout(() => errorMsg.remove(), 1000);
   });
+});
+
 
   // Scramble update
   socket.on("scrambleUpdated", (newScramble) => {
@@ -565,24 +690,32 @@ if (!isSolo) {
     nextScrambleBtn.blur();
   });
 
-  socket.on("leaderboardUpdate", (top5) => {
-    const topList = document.getElementById("top5");
-    topList.innerHTML = "";
+socket.on("leaderboardUpdate", (top5) => {
+  const topList = document.getElementById("top5");
+  topList.innerHTML = "";
 
-    top5.forEach((entry, i) => {
-      const li = document.createElement("li");
-      const rank = (i+1).toString();
-      const displayTime = isNaN(entry.time) ? "DNF" : entry.time.toFixed(2);
+  top5.forEach((entry, i) => {
+    const li = document.createElement("li");
+    const rank = (i + 1).toString();
 
-      li.innerHTML = `
-        <span class="rank">${rank}</span>
-        <span class="name">${entry.name}</span>
-        <span class="time">${entry.time.toFixed(2)}</span>
-      `;
-      li.classList.add("entry-pop");
-      topList.appendChild(li);
-    });
+    let displayTime;
+    if (entry.time === null || isNaN(entry.time)) {
+      displayTime = "DNF";
+    } else {
+      displayTime = entry.time.toFixed(2);
+      if (entry.penalty === "+2") displayTime += "+";
+    }
+
+    li.innerHTML = `
+      <span class="rank">${rank}</span>
+      <span class="name">${entry.name}</span>
+      <span class="time">${displayTime}</span>
+    `;
+    li.classList.add("entry-pop");
+    topList.appendChild(li);
   });
+});
+
 
   socket.on("leaderChanged", ({ newLeaderToken, newLeaderName }) => {
   console.log(`[CLIENT] New leader: ${newLeaderName} (${newLeaderToken})`);
@@ -619,7 +752,6 @@ if (!isSolo) {
 // Typing animation
 function typeWithCursor(element, text, speed = 65, showCursor = true) {
   element.textContent = "";
-
   if (showCursor) {
     element.classList.add("typing-cursor");
   } else {
@@ -636,7 +768,6 @@ function typeWithCursor(element, text, speed = 65, showCursor = true) {
     }
   }
   typeChar();
-  
 }
 
 // Timer functions
@@ -658,10 +789,25 @@ function formatTime(ms, { precision = 2, compact = false } = {}) {
 
 
 function startTimer() {
+
+  if (inspectionTimerInterval) {
+    clearInterval(inspectionTimerInterval);
+    inspectionTimerInterval = null;
+  }
+  if (inspectionDisplay) {
+    inspectionDisplay.classList.remove("visible");
+    inspectionDisplay.classList.add("hidden");
+  }
+
+  timerDisplay.classList.remove("inspection");
+  inspecting = false;
+  inspectionPenalty = null;
+
   running = true;
   startTime = performance.now();
   timerDisplay.textContent = "0.00";
   document.body.classList.add("timing");
+
   requestAnimationFrame(() => {
     timer = requestAnimationFrame(updateTimer);
   });
@@ -675,37 +821,69 @@ function stopTimer() {
   postSolveOptions.classList.add("visible");
 
   const elapsed = performance.now() - startTime;
-
-  // Format final time with 2 decimals, optionally remove leading 0
-  const finalFormatted = formatTime(elapsed, {
-    precision: 2,
-    compact: true // set to false if you want to keep the "0."
-  });
-
-  timerDisplay.textContent = finalFormatted;
-
   const scramble = scrambleDisplay.textContent.trim();
   lastSubmittedScramble = scramble;
 
-  // SOLO MODE: Track local solves for statistics
-  if (isSolo && elapsed > 0) {
-    onSoloSolveComplete(elapsed); // Pass raw ms
+  // Determine inspection penalty if needed
+  let inspectionTime = null;
+  if (window.inspectionEnabled && typeof inspectionStart === "number") {
+    inspectionTime = (startTime - inspectionStart) / 1000;
+    if (inspectionTime > 17) {
+      window.inspectionPenalty = "DNF";
+    } else if (inspectionTime > 15) {
+      window.inspectionPenalty = "+2";
+    } else {
+      window.inspectionPenalty = null;
+    }
+    console.log("[stopTimer] Inspection time:", inspectionTime.toFixed(2), "→ Penalty:", window.inspectionPenalty);
   }
 
-  // MULTIPLAYER: Submit solve to server
-  if (!isSolo && finalFormatted !== "0.00") {
+  // Decide on displayed time (finalFormatted)
+  let finalTimeMs = elapsed;
+  let displayTime = formatTime(finalTimeMs, { precision: 2, compact: true });
+
+  const appliedPenalty = window.inspectionPenalty || null;
+
+  if (appliedPenalty === "DNF") {
+    displayTime = "DNF";
+  } else if (appliedPenalty === "+2") {
+    finalTimeMs += 2000;
+    displayTime = formatTime(finalTimeMs, { precision: 2, compact: true }) + "+";
+  }
+
+  timerDisplay.textContent = displayTime;
+
+  // SOLO MODE
+  if (isSolo && elapsed > 0) {
+    onSoloSolveComplete(elapsed);
+
+    if (appliedPenalty === "+2") {
+      markLastSoloAsPenalty("+2");
+    } else if (appliedPenalty === "DNF") {
+      markLastSoloAsPenalty("DNF");
+    }
+
+    updateStatsPanel();
+    updateSolveHistory();
+  }
+
+  // MULTIPLAYER MODE
+  if (!isSolo && displayTime !== "0.00") {
     socket.emit("submitSolve", {
       roomCode,
       token,
-      time: finalFormatted,
-      scramble: scramble,
-      penalty: currentPenalty
+      time: parseFloat((finalTimeMs / 1000).toFixed(2)), // send numeric seconds
+      scramble,
+      penalty: appliedPenalty
     });
-    console.log("Solve submitted: ", finalFormatted, "Penalty:", currentPenalty);
+    console.log("Solve submitted:", displayTime, "Penalty:", appliedPenalty);
   }
 
+  // Reset state
+  window.inspectionPenalty = null;
   currentPenalty = null;
 
+  // SOLO scramble refresh
   if (isSolo) {
     setTimeout(async () => {
       const newScramble = await generateScramble();
@@ -714,6 +892,7 @@ function stopTimer() {
     }, 400);
   }
 }
+
 
 
 function updateTimer() {
@@ -775,23 +954,35 @@ document.getElementById("dnfBtn").addEventListener("click", () => {
 document.addEventListener("keydown", (e) => {
   if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") return;
 
-  // Stop timer on ANY key if running
-  if (running && e.code !== "F12") { 
+  if (isManualMode) return;
+
+  if (running && e.code !== "F12") {
+    console.log("[keydown] Stopping timer");
     stopTimer();
     e.preventDefault();
     return;
   }
 
   if (e.code === "Space") {
+
+    if (isManualMode) return;
+
     if (!heldSpace) {
       heldSpace = true;
+      console.log("[keydown] Space held");
 
-      if (running) {
-        stopTimer();
-      } else if (!doneSolving) {
-        readyToStart = true;
-        timerDisplay.textContent = "0.00";
+      if (!running && !doneSolving) {
+        const inspectionEnabled = document.getElementById("toggle-inspection")?.checked;
+        console.log("[keydown] Inspection Enabled:", inspectionEnabled);
+
         timerDisplay.classList.add("ready");
+
+        if (inspectionEnabled && !inspecting) {
+          readyToStart = true;
+          timerDisplay.textContent = "0.00";
+        } else if (!inspectionEnabled) {
+          readyToStart = true;
+        }
       }
     }
 
@@ -800,20 +991,76 @@ document.addEventListener("keydown", (e) => {
 });
 
 
+
 document.addEventListener("keyup", (e) => {
-  if (e.code === "Space") {
-    if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") return;
-    if (readyToStart && !running) {
+  if (e.code !== "Space") return;
+  if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") return;
+
+  const inspectionEnabled = document.getElementById("toggle-inspection")?.checked;
+  window.inspectionEnabled = inspectionEnabled;
+  console.log("[keyup] Inspection Enabled:", inspectionEnabled);
+  console.log("[keyup] States → running:", running, "| inspecting:", inspecting, "| readyToStart:", readyToStart);
+
+  if (!isManualMode && readyToStart && !running) {
+    if (inspectionEnabled && !inspecting) {
+      console.log("[keyup] Starting inspection");
+      startInspection();
+      inspecting = true;
+      inspectionStart = performance.now();
+    } else {
+      console.log("[keyup] Starting timer directly");
       startTimer();
     }
 
-    heldSpace = false;
     readyToStart = false;
     timerDisplay.classList.remove("ready");
-
+    heldSpace = false;
     e.preventDefault();
+    return;
   }
+
+  if (inspecting && !running) {
+    console.log("[keyup] Finishing inspection and starting timer");
+    const inspectionTime = (performance.now() - inspectionStart) / 1000;
+
+    if (inspectionTime > 17.0) {
+      window.inspectionPenalty = "DNF";
+    } else if (inspectionTime > 15.0) {
+      window.inspectionPenalty = "+2";
+    } else {
+      window.inspectionPenalty = null;
+    }
+
+  console.log(`[INSPECTION] Time: ${inspectionTime.toFixed(2)}s → Penalty: ${window.inspectionPenalty}`);
+
+    startTimer();
+    document.body.classList.remove("inspecting");
+    inspecting = false;
+    timerDisplay.classList.remove("ready");
+    heldSpace = false;
+    e.preventDefault();
+    return;
+  }
+
+  console.log("[keyup] Nothing matched — clearing states");
+  heldSpace = false;
+  timerDisplay.classList.remove("ready");
+  e.preventDefault();
 });
+
+
+function parseManualTime(input) {
+  if (!input) return null;
+
+  const padded = input.padStart(3, "0");
+  const beforeDot = padded.slice(0, -2);
+  const afterDot = padded.slice(-2);
+
+  return parseFloat(`${beforeDot}.${afterDot}`);
+}
+
+
+
 
 // Touch support for mobile devices
 const touchArea = document.getElementById("touchArea");
@@ -826,40 +1073,93 @@ if (isMobile) {
   let touchHeld = false;
 
   touchArea.addEventListener("touchstart", (e) => {
+    if (isManualMode) return;
     if (touchHeld) return;
     touchHeld = true;
 
+    const inspectionEnabled = document.getElementById("toggle-inspection")?.checked;
+    window.inspectionEnabled = inspectionEnabled;
+
     if (running) {
+      console.log("[touchstart] Stopping timer");
       stopTimer();
     } else if (!doneSolving) {
-      readyToStart = true;
-      timerDisplay.textContent = "0.00";
-      timerDisplay.classList.add("ready");
+      console.log("[touchstart] Touch held");
+
+      if (inspectionEnabled && !inspecting) {
+        console.log("[touchstart] Ready to start inspection");
+        readyToStart = true;
+        timerDisplay.textContent = "0.00";
+        timerDisplay.classList.add("ready");
+      } else if (!inspectionEnabled) {
+        readyToStart = true;
+        timerDisplay.textContent = "0.00";
+        timerDisplay.classList.add("ready");
+      } else if (inspectionEnabled && inspecting && !running) {
+        timerDisplay.classList.add("ready");
+      }
     }
 
     e.preventDefault();
   }, { passive: false });
 
   touchArea.addEventListener("touchend", (e) => {
-    if (readyToStart && !running) {
+    const inspectionEnabled = document.getElementById("toggle-inspection")?.checked;
+    console.log("[touchend] Inspection Enabled:", inspectionEnabled);
+    console.log("[touchend] States → running:", running, "| inspecting:", inspecting, "| readyToStart:", readyToStart);
+
+    if (!isManualMode && readyToStart && !running) {
+      if (inspectionEnabled && !inspecting) {
+        console.log("[touchend] Starting inspection");
+        startInspection();
+        inspecting = true;
+        inspectionStart = performance.now();
+        timerDisplay.classList.add("ready");
+        timerDisplay.classList.add("inspection");
+      } else {
+        console.log("[touchend] Starting timer directly");
+        startTimer();
+      }
+
+      readyToStart = false;
+      timerDisplay.classList.remove("ready");
+      touchHeld = false;
+      e.preventDefault();
+      return;
+    }
+
+    if (inspecting && !running) {
+      console.log("[touchend] Finishing inspection and starting timer");
+      const inspectionTime = (performance.now() - inspectionStart) / 1000;
+
+      if (inspectionTime > 17.0) {
+        window.inspectionPenalty = "DNF";
+      } else if (inspectionTime > 15.0) {
+        window.inspectionPenalty = "+2";
+      } else {
+        window.inspectionPenalty = null;
+      }
+
+
+      console.log(`[INSPECTION] Time: ${inspectionTime.toFixed(2)}s → Penalty: ${window.inspectionPenalty}`);
+
       startTimer();
+      document.body.classList.remove("inspecting");
+      inspecting = false;
+      timerDisplay.classList.remove("inspection")
+      timerDisplay.classList.remove("ready");
+      touchHeld = false;
+      e.preventDefault();
+      return;
     }
 
-    if (isSolo && !running && doneSolving) {
-      setTimeout(async () => {
-        const newScramble = await generateScramble();
-        typeWithCursor(scrambleDisplay, newScramble, 18, false);
-        doneSolving = false;
-      }, 400);
-    }
-
+    console.log("[touchend] Nothing matched — clearing states");
     touchHeld = false;
-    readyToStart = false;
     timerDisplay.classList.remove("ready");
-
     e.preventDefault();
   }, { passive: false });
 }
+
 
 
 
@@ -930,3 +1230,19 @@ if (isSolo) {
     loadSolvesFromStorage();
   });
 }
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const manualInput = document.getElementById("manualInput");
+  setupManualInputHandler();
+
+  if (!manualInput) {
+    console.warn("manualInput not found!");
+    return;
+  }
+
+  manualInput.addEventListener("input", () => {
+    manualInput.value = manualInput.value.replace(/\D/g, ""); // remove all non-digits
+  });
+});
+

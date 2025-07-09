@@ -157,7 +157,7 @@ io.on("connection", (socket) => {
       });
     });
 
-    socket.on("submitSolve", ({ roomCode, token, time, scramble }) => {
+    socket.on("submitSolve", ({ roomCode, token, time, scramble, penalty }) => {
       const player = db.prepare("SELECT * FROM players WHERE token = ? AND room_code = ?").get(token, roomCode);
       if (!player) return;
 
@@ -173,17 +173,21 @@ io.on("connection", (socket) => {
       if (existing) return;
 
       // Insert the new solve
+      const isDNF = time === "DNF" || penalty === "DNF";
+      const submittedTime = isDNF ? null : parseFloat(time);
+      const submittedPenalty = isDNF ? "DNF" : penalty;
+
       db.prepare(`
         INSERT INTO solves (token, scramble, time, penalty, timestamp)
-        VALUES (?, ?, ?, '', ?)
-      `).run(token, trimmedScramble, parseFloat(time), Date.now());
+        VALUES (?, ?, ?, ?, ?)
+      `).run(token, trimmedScramble, submittedTime, submittedPenalty, Date.now());
 
       // Get top 10 valid solves for this scramble
       const top10 = db.prepare(`
         SELECT players.name, solves.time
         FROM solves
         JOIN players ON solves.token = players.token
-        WHERE solves.scramble = ? AND solves.time IS NOT NULL
+        WHERE solves.scramble = ? AND (solves.penalty IS NULL OR solves.penalty != 'DNF')
         ORDER BY solves.time ASC
         LIMIT 10
       `).all(trimmedScramble);
@@ -219,11 +223,17 @@ io.on("connection", (socket) => {
       let updatedTime = solve.time;
       let updatedPenalty = penalty;
 
+      // Prevent +2 being applied to a DNF solve
       if (penalty === "+2") {
+        if (solve.penalty === "DNF" || solve.time === null) {
+          console.log("Cannot apply +2 to a DNF solve. Ignored.");
+          return;
+        }
         updatedTime += 2.00;
       } else if (penalty === "DNF") {
         updatedTime = null;
-      }
+}
+
 
       // Update the solve with penalty and adjusted time
       db.prepare(`
@@ -234,13 +244,14 @@ io.on("connection", (socket) => {
 
       // Fetch updated top 10 leaderboard
       const top10 = db.prepare(`
-        SELECT players.name, solves.time
+        SELECT players.name, solves.time, solves.penalty
         FROM solves
         JOIN players ON solves.token = players.token
-        WHERE solves.scramble = ? AND solves.time IS NOT NULL
+        WHERE solves.scramble = ? AND (solves.penalty IS NULL OR solves.penalty != 'DNF')
         ORDER BY solves.time ASC
         LIMIT 10
       `).all(trimmedScramble);
+
 
       io.to(roomCode).emit("leaderboardUpdate", top10);
     });

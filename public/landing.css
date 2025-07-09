@@ -176,20 +176,20 @@ body.loaded #circle-right {
   font-size: 1rem;
   border: none;
   border-radius: 12px;
-  background-color: #333;
+  background-color: rgba(179, 58, 255, 0.633);
   color: white;
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
 .button-row button:hover {
-  background-color: #555;
+  background-color: #be37d6;
 }
 
 .soloBtn {
   background-color: #fff;
-}
 
+}
 
 /* === TOAST === */
 .toast {
