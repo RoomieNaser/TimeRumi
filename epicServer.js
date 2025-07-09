@@ -16,7 +16,6 @@ const http = require("http");
 const sanitizeHtml = require('sanitize-html');
 const app = express();
 const {Server} = require("socket.io");
-const path = require("path");
 const server = http.createServer(app);
 const io = new Server(server);
 
