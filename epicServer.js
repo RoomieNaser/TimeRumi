@@ -1,3 +1,10 @@
+const path = require('path');
+
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml');
+  res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
+});
+
 //required modules and stuffs
 const express = require("express");
 const scrambler = require("cube-scrambler")();
