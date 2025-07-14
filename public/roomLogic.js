@@ -504,7 +504,14 @@ document.addEventListener("click", (e) => {
 
 
 
-const nickname = sessionStorage.getItem("nickname") || "Unnamed";
+const storedNickname = sessionStorage.getItem("nickname");
+if (!storedNickname || storedNickname.trim().toLowerCase() === "unnamed" || storedNickname.trim() === "") {
+  alert("Please enter a valid nickname before joining.");
+  window.location.href = "/"; // redirect to landing page
+  throw new Error("Invalid nickname");
+}
+const nickname = storedNickname.trim();
+
 const socket = isSolo ? null : io();
 
       // Icons

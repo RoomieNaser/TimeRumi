@@ -658,7 +658,7 @@ body.timing .post-options {
 }
 
 .leaderboard {
-  height: 250px;               /* Fixed height for stability */
+  height: 400px;               /* Fixed height for stability */
   overflow: hidden;            /* Prevent outer scroll */
   display: flex;
   flex-direction: column;
@@ -669,7 +669,7 @@ body.timing .post-options {
 
 
 #top5 {
-  max-height: 300px;  /* Scroll limit */
+  max-height: 950px;  /* Scroll limit */
   overflow-y: auto;
   padding-right: 8px; /* room for scrollbar */
   scrollbar-width: thin;

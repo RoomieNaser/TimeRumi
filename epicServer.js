@@ -121,6 +121,13 @@ io.on("connection", (socket) => {
     //joinRoom handler
     socket.on("joinRoom", ({roomCode, nickname, token}) => {
       console.log("[SERVER] joinRoom received:", {roomCode, nickname, token});
+
+      // Block users with empty or "Unnamed" nickname
+      if (!nickname || nickname.trim() === "" || nickname.trim().toLowerCase() === "unnamed") {
+        socket.emit("errorJoin", "Invalid nickname. Please choose a name.");
+        console.warn(`[SECURITY] Blocked attempt to join with invalid nickname: "${nickname}"`);
+        return;
+      }
       
       const room = db.prepare(`SELECT * FROM rooms WHERE code = ?`).get(roomCode);
       if (!room) {
@@ -144,6 +151,8 @@ io.on("connection", (socket) => {
       socket.data.roomCode = roomCode;
       socket.data.token = token;
       socket.data.nickname = nickname;
+
+
 
       socket.emit("roomJoined", {
         scramble: room.scramble,
