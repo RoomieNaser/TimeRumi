@@ -48,6 +48,7 @@ header {
 
 .nav-links {
     list-style: none;
+    margin-top: 5px;
 }
 
 .nav-links li {
@@ -195,7 +196,7 @@ body.loaded #circle-right {
   background: rgba(40, 40, 40, 0.6);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
   overflow: hidden;
   opacity: 0;
   animation: zoomInFade 0.5s ease-out 0.4s forwards;
@@ -286,6 +287,12 @@ body.loaded #circle-right {
   .button-row {
     flex-direction: column;
     gap: 0.8rem;
+  }
+
+  img {
+    width: 20px;
+    height: 20px;
+
   }
 }
 
