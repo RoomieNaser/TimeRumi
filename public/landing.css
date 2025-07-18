@@ -360,11 +360,15 @@ body.loaded #circle-right {
 }
 
 
-@media (max-width: 500px) {
+@media (max-width: 768px) {
   .intro-text {
     font-size: 1.5rem;
     transform: none;
     opacity: 0;
+  }
+
+  .glass-box {
+    transform: scale(0.7);
   }
 }
 
