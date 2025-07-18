@@ -46,12 +46,6 @@ window.addEventListener("DOMContentLoaded", () => {
     sessionStorage.setItem("nickname", name);
     window.location.href = "/room/SOLO";
   });
-
-  //Timer for scroll reminder
-  setTimeout(() => {
-    scrollReminder.classList.remove("hidden");
-  }, 1000);
-
 });
 /*
 const header = document.querySelector("header");
