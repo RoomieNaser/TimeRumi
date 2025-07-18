@@ -505,16 +505,18 @@ document.addEventListener("click", (e) => {
 
 
 const storedNickname = sessionStorage.getItem("nickname");
-if (!storedNickname || storedNickname.trim().toLowerCase() === "unnamed" || storedNickname.trim() === "") {
-  alert("Please enter a valid nickname before joining.");
-  window.location.href = "/"; // redirect to landing page
-  throw new Error("Invalid nickname");
+if (!isSolo) {
+  if (!storedNickname || storedNickname.trim().toLowerCase() === "unnamed" || storedNickname.trim() === "") {
+    alert("Please enter a valid nickname before joining.");
+    window.location.href = "/"; // redirect to landing page
+    throw new Error("Invalid nickname");
+  }
 }
 const nickname = storedNickname.trim();
-
 const socket = isSolo ? null : io();
 
-      // Icons
+
+// Icons
 const crownSVG = `
 <svg class="chat-icon" width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none"
   viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

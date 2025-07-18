@@ -3,7 +3,73 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: "Roboto", sans-serif;
 }
+
+
+.donate-btn {
+    all: unset;
+    cursor: pointer;
+}
+
+li, .logo, .donate-btn, a{
+    font-size: 16px;
+    color: #edf0f1;
+    text-decoration: none;
+}
+
+
+.logo {
+    cursor: default;
+    font-weight: 900;
+    text-shadow: 0 0 6px rgba(0, 255, 234, 0.24);
+    transition: all 0.2s ease 0s;
+}
+
+.logo:hover {
+    text-shadow: 0 0 6px rgba(114, 27, 255, 0.4);
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 5%;
+    background-color: transparent;
+    transform: scale(0.9);
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10000000;
+    transition: all 0.3s;
+}
+
+.nav-links {
+    list-style: none;
+}
+
+.nav-links li {
+    display: inline-block;
+    padding: 0px 5vw;
+}
+
+.nav-links li a, .donate-btn{
+    transition: all 0.2s ease 0s;
+}
+
+.nav-links li a:hover, .donate-btn:hover{
+    opacity: 0.5;
+}
+
+.welcome {
+    font-weight: 500;
+    font-size: 5rem;
+    text-align: center;
+    transform: translateY(20px);
+}
+
 
 html {
   overflow-x: hidden;
@@ -14,7 +80,7 @@ html {
 
 body {
   font-family: 'Roboto', sans-serif;
-  background-color: #000;
+  background-color: #151515;
   color: #fff;
   min-height: 100dvh;
   overflow-x: hidden;
@@ -24,21 +90,7 @@ body {
   position: relative;
   max-width: 100vw;
   overscroll-behavior: none;
-}
-
-/* === INTRO TEXT === */
-.intro-text {
-  font-size: clamp(2.2rem, 5vw, 4rem);
-  font-weight: 700;
-  color: #e0e0e0;
-  text-align: center;
-  margin-bottom: 3rem;
-  opacity: 0;
-  transform: translateX(-50px);
-  animation: slideInLeft 1s ease-out forwards;
-  animation-delay: 0.3s;
-  max-width: 90%;
-  line-height: 1.4;
+  cursor: default;
 }
 
 
@@ -46,7 +98,6 @@ body {
 .blob, .circle {
   position: absolute;
   z-index: 0;
-  filter: blur(60px);
   opacity: 0;
   pointer-events: none;
   transition: transform 1.2s ease-in-out, opacity 1.2s ease-in-out;
@@ -59,7 +110,7 @@ body {
 }
 #circle-left {
   top: 35%;
-  left: -15%;
+  left: -5%;
   transform: translateX(-60px);
 }
 #blob-right {
@@ -69,7 +120,7 @@ body {
 }
 #circle-right {
   bottom: 35%;
-  right: -15%;
+  right: -5%;
   transform: translateX(60px);
 }
 
@@ -109,7 +160,7 @@ body.loaded #circle-right {
   align-items: center;
   justify-content: center;
   min-height: 100dvh;
-  padding: 2rem;
+  
 }
 
 .center-content {
@@ -118,25 +169,29 @@ body.loaded #circle-right {
   align-items: center;
   justify-content: center;
   gap: 3rem;
-  padding-top: clamp(2rem, 10vh, 6rem); /* replaces the old -15vh */
+  padding-top: clamp(2rem, 10vh, 6rem); 
 }
 
+.scroll-down-reminder {
+  font-weight: 100;
+  transition: all 1s ease;
+}
 
 
 /* === GLASS BOX === */
 .glass-box {
-  position: relative;
   z-index: 1;
   padding: 40px 30px;
   border-radius: 20px;
-  background: rgba(20, 20, 20, 0.6);
+  margin-top: 50px;
+  background: rgba(40, 40, 40, 0.6);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
   overflow: hidden;
   opacity: 0;
-  transform: scale(0.8);
-  animation: zoomInFade 0.9s ease-out 0.4s forwards;
+  animation: zoomInFade 0.5s ease-out 0.4s forwards;
+  transition: all 0.2s ease;
 }
 
 /* === TEXT === */
@@ -160,7 +215,7 @@ body.loaded #circle-right {
 }
 
 .glass-box input::placeholder {
-  color: #aaa;
+  color: #e4e4e4;
 }
 
 /* === BUTTONS === */
@@ -250,7 +305,7 @@ body.loaded #circle-right {
 
 @media (min-width: 700px) {
   .intro-text {
-    white-space: nowrap;
+    
     font-size: 2.2rem;
   }
 }
@@ -304,11 +359,6 @@ body.loaded #circle-right {
   }
 }
 
-@media (min-width: 1000px) {
-  .intro-text {
-    white-space: nowrap;
-  }
-}
 
 @media (max-width: 500px) {
   .intro-text {
@@ -360,51 +410,47 @@ body.loaded #circle-right {
 
 .login-line {
   display: flex;
-  justify-content: space-between;
+  justify-content: left;
   align-items: center;
-}
-
-.donate {
-  all: unset;
-  background-color: transparent;
-  border-radius: 30px;
-  transform: translateY(-15px);
-  transition: box-shadow 0.2s ease;
-}
-
-.donate img {
-  width: 54px;
-  height: 54px;
-}
-
-.donate:hover {
-  cursor: pointer;
-  opacity: 1;
-  box-shadow: 0 0 6px rgb(84, 207, 255);
-}
-
-.donate .tooltip {
-  position: absolute;
-  right: 100%; /* Above the button */
-  background-color: rgba(0, 0, 0, 0.85);
-  box-shadow: 0 0 6px rgb(208, 146, 255);
-  color: white;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 1rem;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.donate:hover .tooltip {
-  opacity: 1;
-  transform: translateX(-5%) translateY(0px);
 }
 
 @media (min-width: 769px) {
   .intro-text {
     font-size: clamp(3.2rem, 6vw, 5rem);
   }
+}
+
+
+
+/*SCROLL BEHAVIOUR*/
+.scrolled-header {
+  backdrop-filter: blur(12px);
+  border-bottom: solid 1px rgba(105, 105, 105, 0.6);
+  transform: scale(1);
+}
+
+.scrolled-glass-box {
+  display: none;
+}
+
+.intro-text {
+  margin-top: 60px;
+  text-align: left;
+  translate: -40%;
+}
+
+
+.hidden {
+  opacity: 0;
+}   
+
+p {
+  font-size: 20px;
+}
+
+.scrolled-background {
+  background-color: rgb(15, 15, 15);
+
+  
+  transition: all 0.4s ease;
 }

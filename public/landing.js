@@ -1,8 +1,11 @@
+const scrollReminder = document.querySelector("div.scroll-down-reminder");
+
 window.addEventListener("DOMContentLoaded", () => {
   const nicknameInput = document.getElementById("nickname");
   const roomCodeInput = document.getElementById("roomCodeInput");
   const joinBtn = document.getElementById("joinBtn");
   const createBtn = document.getElementById("createBtn");
+
 
   function updateButtonState() {
     const name = nicknameInput.value.trim();
@@ -43,7 +46,32 @@ window.addEventListener("DOMContentLoaded", () => {
     sessionStorage.setItem("nickname", name);
     window.location.href = "/room/SOLO";
   });
+
+  //Timer for scroll reminder
+  setTimeout(() => {
+    scrollReminder.classList.remove("hidden");
+  }, 1000);
+
 });
 
-
+const header = document.querySelector("header");
+const glassBox = document.querySelector("div.glass-box");
+const introText = document.querySelector("div.intro-text");
+window.addEventListener("scroll", () => {
+  if (window.scrollY > 1) {
+    header.classList.add("scrolled-header");
+    glassBox.classList.add("scrolled-glass-box");
+    introText.classList.remove("hidden");
+    scrollReminder.classList.add("hidden");
+    scrollReminder.style.display = "none";
+    document.body.classList.add("scrolled-background");
+  } else {
+    header.classList.remove("scrolled-header");
+    glassBox.classList.remove("scrolled-glass-box");
+    introText.classList.add("hidden");
+    scrollReminder.classList.remove("hidden");
+    scrollReminder.style.display = "block";
+    document.body.classListremove("scrolled-background");
+  }
+});
 

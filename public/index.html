@@ -12,6 +12,30 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;500&display=swap" rel="stylesheet">
 </head>
 <body class="loaded">
+    <header>   
+      <div class="logo">TIMERUMI</div>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="https://discord.gg/rmnd43u5gv" target="_blank">
+            <img src="/assets/discord-svgrepo-com.svg" alt="discord" width="24px" height="24px">
+            </a>
+          </li>
+
+          <li><a href="https://www.youtube.com/@RoomixCubing/" target="_blank">
+            <img src="/assets/youtube-light.svg" alt="youtube" width="24px" height="24px">
+            </a>
+          </li>
+
+          <li>
+            <a href="#" target="_blank">
+              <img src="/assets/book-opened-svgrepo-com.svg" alt="help" width="20px" height="24px" >
+            </a>
+          </li>
+        </ul>        
+      </nav>
+      <button class="donate-btn"><a href="https://streamelements.com/roomixcubing/tip" target="_blank">Donate</a></button>
+    </header>
+
   <!-- Blurred Background Blobs -->
   <div id="blob-left" class="blob"><img src="/assets/left_blob.png" /></div>
   <div id="circle-left" class="circle"><img src="/assets/left_circle.png" /></div>
@@ -21,14 +45,10 @@
   <!-- Centered Form Wrapper -->
   <div class="center-wrap">
     <div class="center-content">
-      <div class="intro-text">Timerumi - Cubing Gone Multiplayer!</div>
+      
       <div class="glass-box">
         <div class="login-line">
-          <h1 class="login">Login</h1>
-          <a class="donate" href="https://streamelements.com/roomixcubing/tip" target="_blank">
-            <img src="/assets/donate.svg" />
-            <span class="tooltip">Support Timerumi?</span>
-          </a>          
+          <h1 class="login">Login</h1>        
         </div>
 
         <input type="text" id="nickname" placeholder="Nickname" maxlength="18" />
@@ -41,11 +61,26 @@
           </div>
           <button id="soloBtn" class="solo-button">Singleplayer</button>
         </div>
+        
 
       </div>
+      <div class="scroll-down-reminder hidden">Scroll down for more info!</div>
+      <div class="intro-content"></div>
+        <div class="intro-text hidden" id="introTitle"><strong>· WHAT IS TIMERUMI?</strong> </div>
+        <div>
+          <p>Whether it be rigorous practice, or casual fun - whichever path you're looking for, Timerumi has got you covered!
+            There are three ways to use timerumi.
+          </p>
+        </div>
+        <div class="intro-text hidden" id="introTitle">What is Timerumi?</div>
+        <div class="intro-text hidden" id="introTitle">What is Timerumi?</div>
+        <div class="intro-text hidden" id="introTitle">What is Timerumi?</div>
     </div>
   </div>
 
+  
+
+  
 
 
   <script src="/socket.io/socket.io.js"></script>
