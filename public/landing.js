@@ -53,7 +53,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }, 1000);
 
 });
-
+/*
 const header = document.querySelector("header");
 const glassBox = document.querySelector("div.glass-box");
 const introText = document.querySelector("div.intro-text");
@@ -74,4 +74,4 @@ window.addEventListener("scroll", () => {
     document.body.classListremove("scrolled-background");
   }
 });
-
+*/
