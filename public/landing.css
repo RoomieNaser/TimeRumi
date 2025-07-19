@@ -180,7 +180,7 @@ body.loaded #circle-right {
   align-items: center;
   justify-content: center;
   gap: 3rem;
-  padding-top: clamp(1rem, 1vh, 1rem); 
+  padding-top: clamp(1rem, 1vh, 1rem);
 }
 
 
