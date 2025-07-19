@@ -1,5 +1,3 @@
-const scrollReminder = document.querySelector("div.scroll-down-reminder");
-
 window.addEventListener("DOMContentLoaded", () => {
   const nicknameInput = document.getElementById("nickname");
   const roomCodeInput = document.getElementById("roomCodeInput");
