@@ -55,24 +55,24 @@
     </div>
 
     <div class="help-contents">
-        <div class="help-title">
+        <div class="help-title" id="singleplayer-section">
             <h3>· How To Use The Timer:</h3>
-            <img src="assets/singleplayer.svg" alt="(Singleplayer Mode)" class="help-title-svg">
+            <img src="/assets/singleplayer.svg" alt="(Singleplayer Mode)" class="help-title-svg">
         </div>
 
         <section class="container">
-            <div class="slider-wrapper">
+            <div class="slider-wrapper" data-carousel="timer">
                 <div class="slider">
-                    <img src="assets/helpCarouselSteps/singleplayer-step1.png" alt="Click the singleplayer button to enter solo mode, no need for a name" id="sp-tutorial-slide-1">
-                    <img src="assets/helpCarouselSteps/singleplayer-step2.png" alt="You will be greeted to this page with the scramble, the timer UI, and the averages of 5 and 12" id="sp-tutorial-slide-2">
-                    <img src="assets/helpCarouselSteps/singleplayer-step3.png" alt="Hold space to prepare the timer. The timer will not start and will stay green until you release" id="sp-tutorial-slide-3">
-                    <img src="assets/helpCarouselSteps/singeplayer-step4.png" alt="Solve the cube while the timer is running!" id="sp-tutorial-slide-4">
-                    <img src="assets/helpCarouselSteps/singleplayer-step5.png" alt="If you did not comply with the WCA guidelines to comepletely solve the Rubik's cube, apply the appropriate penalty" id="sp-tutorial-slide-5">
-                    <img src="assets/helpCarouselSteps/singleplayer-step6.png" alt="Use the button to the left to access your statistics" id="sp-tutorial-slide-6">
-                    <img src="assets/helpCarouselSteps/singleplayer-step7.png" alt="Had a bad solve? Changed your mind on penalties? Access penalties and solve deletion through the statistics panel" id="sp-tutorial-slide-7">
-                    <img src="assets/helpCarouselSteps/singleplayer-step8.png" alt="Delete all of your solves using this button. It will ask for confirmation" id="sp-tutorial-slide-8">
-                    <img src="assets/helpCarouselSteps/singleplayer-step9.png" alt="Export your solves as a csv file. This will directly download to your computer" id="sp-tutorial-slide-9">
-                    <img src="assets/helpCarouselSteps/singleplayer-step10.png" alt="Customize to your liking using the settings button and enjoy!" id="sp-tutorial-slide-10">
+                    <img src="/assets/helpCarouselSteps/singleplayer-step1.png" alt="Click the singleplayer button to enter solo mode, no need for a name" id="sp-tutorial-slide-1">
+                    <img src="/assets/helpCarouselSteps/singleplayer-step2.png" alt="You will be greeted to this page with the scramble, the timer UI, and the averages of 5 and 12" id="sp-tutorial-slide-2">
+                    <img src="/assets/helpCarouselSteps/singleplayer-step3.png" alt="Hold space to prepare the timer. The timer will not start and will stay green until you release" id="sp-tutorial-slide-3">
+                    <img src="/assets/helpCarouselSteps/singeplayer-step4.png" alt="Solve the cube while the timer is running!" id="sp-tutorial-slide-4">
+                    <img src="/assets/helpCarouselSteps/singleplayer-step5.png" alt="If you did not comply with the WCA guidelines to comepletely solve the Rubik's cube, apply the appropriate penalty" id="sp-tutorial-slide-5">
+                    <img src="/assets/helpCarouselSteps/singleplayer-step6.png" alt="Use the button to the left to access your statistics" id="sp-tutorial-slide-6">
+                    <img src="/assets/helpCarouselSteps/singleplayer-step7.png" alt="Had a bad solve? Changed your mind on penalties? Access penalties and solve deletion through the statistics panel" id="sp-tutorial-slide-7">
+                    <img src="/assets/helpCarouselSteps/singleplayer-step8.png" alt="Delete all of your solves using this button. It will ask for confirmation" id="sp-tutorial-slide-8">
+                    <img src="/assets/helpCarouselSteps/singleplayer-step9.png" alt="Export your solves as a csv file. This will directly download to your computer" id="sp-tutorial-slide-9">
+                    <img src="/assets/helpCarouselSteps/singleplayer-step10.png" alt="Customize to your liking using the settings button and enjoy!" id="sp-tutorial-slide-10">
 
                 </div>
                 <div class="slider-nav">
@@ -88,8 +88,55 @@
                     <a href="#sp-tutorial-slide-10" class="nav-dot"></a>
                 </div>
             </div>
-            <p id="carousel-description" class="carousel-desc">
+            <p id="carousel-description" class="carousel-desc" aria-live="polite">
                 Click the singleplayer button to enter solo mode, no need for a name
+            </p>
+
+
+        </section>
+
+        <div class="help-title">
+            <h3>· How To Customize Timerumi:</h3>
+            <img src="/assets/singleplayer.svg" alt="(Singleplayer Mode)" class="help-title-svg">
+        </div>
+
+        <section class="container">
+            <div class="slider-wrapper" data-carousel="customization">
+                <div class="slider">
+                    <video src="/assets/helpCarouselSteps/customization singleplayer videos/cstm-tutorial-step1.mp4" id="cstm-tutorial-slide-1" 
+                    muted playsinline preload="metadata" loop></video>
+                    <video src="/assets/helpCarouselSteps/customization singleplayer videos/cstm-tutorial-step2.mp4" id="cstm-tutorial-slide-2" 
+                    muted playsinline preload="metadata" loop></video>
+                    <video src="/assets/helpCarouselSteps/customization singleplayer videos/cstm-tutorial-step3.mp4" id="cstm-tutorial-slide-3" 
+                    muted playsinline preload="metadata" loop></video>
+                    <video src="/assets/helpCarouselSteps/customization singleplayer videos/cstm-tutorial-step4.mp4" id="cstm-tutorial-slide-4" 
+                    muted playsinline preload="metadata" loop></video>
+                    <video src="/assets/helpCarouselSteps/customization singleplayer videos/cstm-tutorial-step5.mp4" id="cstm-tutorial-slide-5" 
+                    muted playsinline preload="metadata" loop></video>
+                    <video src="/assets/helpCarouselSteps/customization singleplayer videos/cstm-tutorial-step6.mp4" id="cstm-tutorial-slide-6" 
+                    muted playsinline preload="metadata" loop></video>
+                    <video src="/assets/helpCarouselSteps/customization singleplayer videos/cstm-tutorial-step7.mp4" id="cstm-tutorial-slide-7" 
+                    muted playsinline preload="metadata" loop></video>
+                    <video src="/assets/helpCarouselSteps/customization singleplayer videos/cstm-tutorial-step8.mp4" id="cstm-tutorial-slide-8" 
+                    muted playsinline preload="metadata" loop></video>
+                    <video src="/assets/helpCarouselSteps/customization singleplayer videos/cstm-tutorial-step9.mp4" id="cstm-tutorial-slide-9" 
+                    muted playsinline preload="metadata" loop></video>
+
+                </div>
+                <div class="slider-nav">
+                    <a href="#cstm-tutorial-slide-1" class="nav-dot"></a>
+                    <a href="#cstm-tutorial-slide-2" class="nav-dot"></a>
+                    <a href="#cstm-tutorial-slide-3" class="nav-dot"></a>
+                    <a href="#cstm-tutorial-slide-4" class="nav-dot"></a>
+                    <a href="#cstm-tutorial-slide-5" class="nav-dot"></a>
+                    <a href="#cstm-tutorial-slide-6" class="nav-dot"></a>
+                    <a href="#cstm-tutorial-slide-7" class="nav-dot"></a>
+                    <a href="#cstm-tutorial-slide-8" class="nav-dot"></a>
+                    <a href="#cstm-tutorial-slide-9" class="nav-dot"></a>
+                </div>
+            </div>
+            <p id="video-carousel-description" class="carousel-desc" aria-live="polite">
+                Go into the settings menu to start customizing!
             </p>
 
 

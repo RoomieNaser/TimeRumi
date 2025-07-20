@@ -237,6 +237,8 @@ h3 {
 section.container {
     margin: 0;
     padding: 0;
+    border-bottom: 1px solid rgba(99, 99, 99, 0.8);
+    box-shadow: 0 9px 6px rgba(0, 0, 0, 0.3);
 }
 
 .container {
