@@ -19,9 +19,6 @@ const timerDisplay = document.getElementById("timerDisplay");
 const manualTimerDisplay = document.getElementById("manualTimerDisplay");
 const postSolveOptions = document.getElementById("postSolveOptions");
 
-
-
-
 //Variables for timer
 let timer = null;
 let startTime = 0;
@@ -34,7 +31,6 @@ let lastSubmittedScramble = null;
 let inspecting = false;
 let inspectionStart = null;
 let isManualMode = false;
-
 
 //Solo logic
 const soloSolves = [];
@@ -59,7 +55,6 @@ function saveSolvesToStorage() {
   localStorage.setItem("soloSolves", JSON.stringify(soloSolves));
 }
 
-
 //Solo functions
 function onSoloSolveComplete(rawMs) {
   const timeInSec = rawMs / 1000;
@@ -72,7 +67,6 @@ function onSoloSolveComplete(rawMs) {
   });
 
   saveSolvesToStorage();
-
   updateStatsPanel();
   updateSolveHistory();
 }
@@ -107,7 +101,6 @@ function updateStatsPanel() {
     document.getElementById("live-ao5").textContent = ao5 !== null ? formatTimeValue(ao5) : "-";
     document.getElementById("live-ao12").textContent = ao12 !== null ? formatTimeValue(ao12) : "-";
   }
-  
 }
 
 function updateSolveHistory() {
@@ -199,7 +192,6 @@ function generateFallbackScramble() {
   return scramble.join(" ");
 }
 
-
 function handleSolveAction(action, index) {
   const solve = soloSolves[index];
   if (!solve) return;
@@ -241,9 +233,6 @@ function handleSolveAction(action, index) {
   updateSolveHistory();
 }
 
-
-
-
 function clearSoloSolves() {
   const confirmed = confirm("Are you sure you want to delete all solo solves? Your solves will be sad :(");
   if (!confirmed) return;
@@ -255,7 +244,6 @@ function clearSoloSolves() {
 }
 
 document.getElementById("reset-solo-btn")?.addEventListener("click", clearSoloSolves);
-
 
 function getAoNAt(arr, n, endIndex) {
   // Build up to n valid solves ending at endIndex
@@ -272,9 +260,6 @@ function getAoNAt(arr, n, endIndex) {
   const sorted = [...valid].sort((a, b) => a - b);
   return getMean(sorted.slice(1, -1));
 }
-
-
-
 
 function getMean(arr) {
   if (!arr.length) return null;
@@ -334,7 +319,6 @@ function formatSoloTime(solve) {
   return formatTimeValue(time); // 2 decimal places
 }
 
-
 function formatManualTime(input) {
   // Remove all spaces
   input = input.trim();
@@ -363,7 +347,6 @@ function formatManualTime(input) {
 
   return asNum.toFixed(2);
 }
-
 
 function setupManualInputHandler() {
   const manualInput = document.getElementById("manualInput");
@@ -420,8 +403,6 @@ function setupManualInputHandler() {
     }
   });
 }
-
-
 
 // Room logic
 const match = window.location.pathname.match(/\/room\/(SOLO|[A-Z]{5}|NEW)/i);
@@ -483,7 +464,6 @@ function appendChatMessage(name, message, type = "user") {
       ${name}
     </span>: ${parsedMsg}`;
 
-
   msgElem.classList.add('chat-entry', isOwn ? 'own-message' : 'other-message');
   document.querySelector('.chat-messages').prepend(msgElem);
 }
@@ -502,8 +482,6 @@ document.addEventListener("click", (e) => {
   }
 });
 
-
-
 const storedNickname = sessionStorage.getItem("nickname");
 if (!isSolo) {
   if (!storedNickname || storedNickname.trim().toLowerCase() === "unnamed" || storedNickname.trim() === "") {
@@ -514,7 +492,6 @@ if (!isSolo) {
 }
 const nickname = storedNickname.trim();
 const socket = isSolo ? null : io();
-
 
 // Icons
 const crownSVG = `
@@ -533,18 +510,28 @@ const personSVG = `
 
 if (!isSolo) {
   // Handle create or join
-
   document.getElementById('stats-toggle')?.classList.add('hidden');
   document.getElementById('stats-panel')?.classList.add('hidden');
-  if (roomCode === "NEW") {
-    socket.emit("createRoom", { nickname });
-    console.log("[CLIENT] Requested to create a new room!");
-  } else if (roomCode) {
-    token = localStorage.getItem(`token-${roomCode}`) || generateSafeToken();
-    console.log(`[CLIENT] Attempting to join room ${roomCode} as ${nickname} with token ${token}`);
-    sessionStorage.setItem("targetRoom", roomCode);
-    socket.emit("joinRoom", { roomCode, nickname, token });
-  }
+
+  // Wrapped inside connect event (Reconnect Fix)
+  socket.on("connect", async () => {
+    if (roomCode === "NEW") {
+      const initialScramble = await window.getRandomScramble(); // Client-side scramble
+      socket.emit("createRoom", { nickname, scramble: initialScramble }); 
+      console.log("[CLIENT] Requested to create a new room!");
+    } else if (roomCode) {
+      token = localStorage.getItem(`token-${roomCode}`) || generateSafeToken();
+      console.log(`[CLIENT] Attempting to join room ${roomCode} as ${nickname} with token ${token}`);
+      sessionStorage.setItem("targetRoom", roomCode);
+      socket.emit("joinRoom", { roomCode, nickname, token });
+    }
+  });
+
+  // Handle Join Errors Fix
+  socket.on("errorJoin", (errorMessage) => {
+    alert("Couldn't Join Room: " + errorMessage);
+    window.location.href = "/";
+  });
 
   // Room created
   socket.on("roomCreated", ({ roomCode: createdCode, token: newToken }) => {
@@ -554,22 +541,16 @@ if (!isSolo) {
     window.location.href = `/room/${createdCode}`;
   });
 
-  //pulse animation function
+  // pulse animation function
   function triggerPulseAnimation() {
     const toggle = document.getElementById("chat-toggle");
-
     toggle.classList.remove("pulse-once");
-
-    // Trigger reflow to restart animation
-    void toggle.offsetWidth;
-
+    void toggle.offsetWidth; // Trigger reflow
     toggle.classList.add("pulse-once");
   }
 
-
   // Room joined
   socket.on("roomJoined", ({ scramble, token: receivedToken, leader, players }) => {
-
     console.log("[CLIENT] Successfully joined room!");
     console.log("[CLIENT] Scramble received:", scramble);
     roomCode = sessionStorage.getItem("targetRoom") || roomCode;
@@ -583,7 +564,7 @@ if (!isSolo) {
     token = receivedToken;
     isLeader = token === leader;
 
-    //send link to chat
+    // send link to chat
     if (isLeader) {
       const overlayLink = `${window.location.origin}/overlay/index.html?room=${roomCode}`;
       socket.emit("chatMessage", {
@@ -592,7 +573,6 @@ if (!isSolo) {
         type: "system"
       });
     }
-
 
     if (isSolo) {
       const leaderboard = document.getElementById("leaderBoardID");
@@ -619,20 +599,17 @@ if (!isSolo) {
     }, 400);
 
     doneSolving = false;
+  }); // <--- roomJoined properly closed here now!
 
-    //chat logic
-    socket.on("chatMessage", ({ name, message, type }) => {
-      appendChatMessage(name, message, type);
-
-      const chatPanel = document.getElementById("chat-panel");
-      const isChatOpen = chatPanel.classList.contains("open");
-      if (!isChatOpen) {
-        triggerPulseAnimation();
-      }
-      window.onNewChatMessage?.();
-    });
-
-
+  // Chat logic (Un-nested Fix)
+  socket.on("chatMessage", ({ name, message, type }) => {
+    appendChatMessage(name, message, type);
+    const chatPanel = document.getElementById("chat-panel");
+    const isChatOpen = chatPanel.classList.contains("open");
+    if (!isChatOpen) {
+      triggerPulseAnimation();
+    }
+    window.onNewChatMessage?.();
   });
 
   socket.on("chatHistory", (messages) => {
@@ -652,34 +629,27 @@ if (!isSolo) {
     }
   });
 
-
   // Copy to clipboard
-const copyIcon = document.getElementById("copyIcon");
+  const copyIcon = document.getElementById("copyIcon");
+  copyIcon?.addEventListener("click", () => {
+    navigator.clipboard.writeText(roomCode).then(() => {
+      const oldMsg = document.querySelector(".copied-message");
+      if (oldMsg) oldMsg.remove();
 
-copyIcon?.addEventListener("click", () => {
-  navigator.clipboard.writeText(roomCode).then(() => {
-    // Remove any existing message if one is already showing
-    const oldMsg = document.querySelector(".copied-message");
-    if (oldMsg) oldMsg.remove();
+      const copiedMsg = document.createElement("div");
+      copiedMsg.textContent = "Room code copied!";
+      copiedMsg.className = "copied-message";
+      document.body.appendChild(copiedMsg);
 
-    // Create the new message element
-    const copiedMsg = document.createElement("div");
-    copiedMsg.textContent = "Room code copied!";
-    copiedMsg.className = "copied-message";
-    document.body.appendChild(copiedMsg);
-
-    // Remove it after animation completes (1s based on your CSS)
-    setTimeout(() => copiedMsg.remove(), 1000);
-  }).catch(() => {
-    // Optional: handle copy failure with a similar toast
-    const errorMsg = document.createElement("div");
-    errorMsg.textContent = "Failed to copy room code.";
-    errorMsg.className = "copied-message";
-    document.body.appendChild(errorMsg);
-    setTimeout(() => errorMsg.remove(), 1000);
+      setTimeout(() => copiedMsg.remove(), 1000);
+    }).catch(() => {
+      const errorMsg = document.createElement("div");
+      errorMsg.textContent = "Failed to copy room code.";
+      errorMsg.className = "copied-message";
+      document.body.appendChild(errorMsg);
+      setTimeout(() => errorMsg.remove(), 1000);
+    });
   });
-});
-
 
   // Scramble update
   socket.on("scrambleUpdated", (newScramble) => {
@@ -691,71 +661,69 @@ copyIcon?.addEventListener("click", () => {
     timerDisplay.textContent = "0.00";
   });
 
-  nextScrambleBtn.addEventListener("click", () => {
+  // Client-Side Scramble Generation Fix
+  nextScrambleBtn.addEventListener("click", async () => {
     console.log("[CLIENT] Next Scramble button clicked!");
     if (token && roomCode) {
-      socket.emit("requestNextScramble", { roomCode, token });
+      const nextScramble = await window.getRandomScramble(); 
+      socket.emit("requestNextScramble", { roomCode, token, scramble: nextScramble });
     }
     nextScrambleBtn.blur();
   });
 
-socket.on("leaderboardUpdate", (top5) => {
-  const topList = document.getElementById("top5");
-  topList.innerHTML = "";
+  socket.on("leaderboardUpdate", (top5) => {
+    const topList = document.getElementById("top5");
+    topList.innerHTML = "";
 
-  top5.forEach((entry, i) => {
-    const li = document.createElement("li");
-    const rank = (i + 1).toString();
+    top5.forEach((entry, i) => {
+      const li = document.createElement("li");
+      const rank = (i + 1).toString();
 
-    let displayTime;
-    if (entry.time === null || isNaN(entry.time)) {
-      displayTime = "DNF";
-    } else {
-      displayTime = entry.time.toFixed(2);
-      if (entry.penalty === "+2") displayTime += "+";
-    }
+      let displayTime;
+      if (entry.time === null || isNaN(entry.time)) {
+        displayTime = "DNF";
+      } else {
+        displayTime = entry.time.toFixed(2);
+        if (entry.penalty === "+2") displayTime += "+";
+      }
 
-    li.innerHTML = `
+      li.innerHTML = `
       <span class="rank">${rank}</span>
       <span class="name">${entry.name}</span>
       <span class="time">${displayTime}</span>
     `;
-    li.classList.add("entry-pop");
-    topList.appendChild(li);
+      li.classList.add("entry-pop");
+      topList.appendChild(li);
+    });
   });
-});
-
 
   socket.on("leaderChanged", ({ newLeaderToken, newLeaderName }) => {
-  console.log(`[CLIENT] New leader: ${newLeaderName} (${newLeaderToken})`);
-  window.roomLeaderToken = newLeaderToken;
-  window.roomLeaderName = newLeaderName;
+    console.log(`[CLIENT] New leader: ${newLeaderName} (${newLeaderToken})`);
+    window.roomLeaderToken = newLeaderToken;
+    window.roomLeaderName = newLeaderName;
 
-  isLeader = token === newLeaderToken;
+    isLeader = token === newLeaderToken;
 
-  // Toggle next scramble button based on leadership
-  if (isLeader) {
-    nextScrambleBtn.style.display = "inline-block";
-  } else {
-    nextScrambleBtn.style.display = "none";
-  }
+    if (isLeader) {
+      nextScrambleBtn.style.display = "inline-block";
+    } else {
+      nextScrambleBtn.style.display = "none";
+    }
 
-  // Optional: Refresh chat crown icons
-  const chatEntries = document.querySelectorAll(".chat-entry");
-  chatEntries.forEach(entry => {
-    const nameSpan = entry.querySelector(".chat-name");
-    if (!nameSpan) return;
+    const chatEntries = document.querySelectorAll(".chat-entry");
+    chatEntries.forEach(entry => {
+      const nameSpan = entry.querySelector(".chat-name");
+      if (!nameSpan) return;
 
-    const nameText = nameSpan.textContent.trim();
-    const name = nameText.replace(/^\s*\S+\s*/, "").trim(); // Remove old icon
+      const nameText = nameSpan.textContent.trim();
+      const name = nameText.replace(/^\s*\S+\s*/, "").trim(); 
 
-    nameSpan.innerHTML = `
+      nameSpan.innerHTML = `
       ${name === newLeaderName ? crownSVG : personSVG}
       ${name}
     `;
     });
   });
-
 }
 
 // Typing animation
@@ -795,10 +763,7 @@ function formatTime(ms, { precision = 2, compact = false } = {}) {
   return compact && result.startsWith("0") ? result.slice(1) : result;
 }
 
-
-
 function startTimer() {
-
   if (inspectionTimerInterval) {
     clearInterval(inspectionTimerInterval);
     inspectionTimerInterval = null;
@@ -833,7 +798,6 @@ function stopTimer() {
   const scramble = scrambleDisplay.textContent.trim();
   lastSubmittedScramble = scramble;
 
-  // Determine inspection penalty if needed
   let inspectionTime = null;
   if (window.inspectionEnabled && typeof inspectionStart === "number") {
     inspectionTime = (startTime - inspectionStart) / 1000;
@@ -847,7 +811,6 @@ function stopTimer() {
     console.log("[stopTimer] Inspection time:", inspectionTime.toFixed(2), "→ Penalty:", window.inspectionPenalty);
   }
 
-  // Decide on displayed time (finalFormatted)
   let finalTimeMs = elapsed;
   let displayTime = formatTime(finalTimeMs, { precision: 2, compact: true });
 
@@ -862,7 +825,6 @@ function stopTimer() {
 
   timerDisplay.textContent = displayTime;
 
-  // SOLO MODE
   if (isSolo && elapsed > 0) {
     onSoloSolveComplete(elapsed);
 
@@ -876,23 +838,20 @@ function stopTimer() {
     updateSolveHistory();
   }
 
-  // MULTIPLAYER MODE
   if (!isSolo && displayTime !== "0.00") {
     socket.emit("submitSolve", {
       roomCode,
       token,
-      time: parseFloat((finalTimeMs / 1000).toFixed(2)), // send numeric seconds
+      time: parseFloat((finalTimeMs / 1000).toFixed(2)),
       scramble,
       penalty: appliedPenalty
     });
     console.log("Solve submitted:", displayTime, "Penalty:", appliedPenalty);
   }
 
-  // Reset state
   window.inspectionPenalty = null;
   currentPenalty = null;
 
-  // SOLO scramble refresh
   if (isSolo) {
     setTimeout(async () => {
       const newScramble = await generateScramble();
@@ -902,15 +861,13 @@ function stopTimer() {
   }
 }
 
-
-
 function updateTimer() {
   if (!running) return;
   const elapsed = performance.now() - startTime;
 
   timerDisplay.textContent = formatTime(elapsed, {
     precision: 1,
-    compact: true // removes leading 0
+    compact: true
   });
 
   timer = requestAnimationFrame(updateTimer);
@@ -959,13 +916,15 @@ document.getElementById("dnfBtn").addEventListener("click", () => {
   lastSubmittedScramble = null;
 });
 
-
 document.addEventListener("keydown", (e) => {
   if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") return;
-
   if (isManualMode) return;
 
   if (running && e.code !== "F12") {
+    // Grace Period Fix
+    if (performance.now() - startTime < 500) {
+      return; 
+    }
     console.log("[keydown] Stopping timer");
     stopTimer();
     e.preventDefault();
@@ -973,7 +932,6 @@ document.addEventListener("keydown", (e) => {
   }
 
   if (e.code === "Space") {
-
     if (isManualMode) return;
 
     if (!heldSpace) {
@@ -994,12 +952,9 @@ document.addEventListener("keydown", (e) => {
         }
       }
     }
-
     e.preventDefault();
   }
 });
-
-
 
 document.addEventListener("keyup", (e) => {
   if (e.code !== "Space") return;
@@ -1040,7 +995,7 @@ document.addEventListener("keyup", (e) => {
       window.inspectionPenalty = null;
     }
 
-  console.log(`[INSPECTION] Time: ${inspectionTime.toFixed(2)}s → Penalty: ${window.inspectionPenalty}`);
+    console.log(`[INSPECTION] Time: ${inspectionTime.toFixed(2)}s → Penalty: ${window.inspectionPenalty}`);
 
     startTimer();
     document.body.classList.remove("inspecting");
@@ -1057,7 +1012,6 @@ document.addEventListener("keyup", (e) => {
   e.preventDefault();
 });
 
-
 function parseManualTime(input) {
   if (!input) return null;
 
@@ -1067,9 +1021,6 @@ function parseManualTime(input) {
 
   return parseFloat(`${beforeDot}.${afterDot}`);
 }
-
-
-
 
 // Touch support for mobile devices
 const touchArea = document.getElementById("touchArea");
@@ -1090,6 +1041,9 @@ if (isMobile) {
     window.inspectionEnabled = inspectionEnabled;
 
     if (running) {
+      // Grace Period Fix
+      if (performance.now() - startTime < 500) return;
+
       console.log("[touchstart] Stopping timer");
       stopTimer();
     } else if (!doneSolving) {
@@ -1149,7 +1103,6 @@ if (isMobile) {
         window.inspectionPenalty = null;
       }
 
-
       console.log(`[INSPECTION] Time: ${inspectionTime.toFixed(2)}s → Penalty: ${window.inspectionPenalty}`);
 
       startTimer();
@@ -1169,23 +1122,16 @@ if (isMobile) {
   }, { passive: false });
 }
 
-
-
-
 //singleplayer functions
 async function generateScramble() {
   try {
-    const res = await fetch("/solo-scramble");
-    const data = await res.json();
-    return data.scramble;
+    // Client-Side Scramble Generation Fix
+    return await window.getRandomScramble(); 
   } catch (err) {
-    console.error("Error fetching scramble from server, weird.", err);
+    console.error("Error generating scramble client-side:", err);
     return generateFallbackScramble();
   }
 }
-
-
-
 
 function handleRoomJoined({ scramble, token: receivedToken, leader }) {
   console.log("[CLIENT] Joined room (solo or multi)!");
@@ -1201,7 +1147,7 @@ function handleRoomJoined({ scramble, token: receivedToken, leader }) {
 
     copyCodeContainer?.remove();
     nextScrambleBtn?.remove();
-    
+
   } else {
     if (isLeader) {
       nextScrambleBtn.style.display = "inline-block";
@@ -1240,7 +1186,6 @@ if (isSolo) {
   });
 }
 
-
 document.addEventListener("DOMContentLoaded", () => {
   const manualInput = document.getElementById("manualInput");
   setupManualInputHandler();
@@ -1254,4 +1199,3 @@ document.addEventListener("DOMContentLoaded", () => {
     manualInput.value = manualInput.value.replace(/\D/g, ""); // remove all non-digits
   });
 });
-

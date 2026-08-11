@@ -2,10 +2,6 @@ const path = require('path');
 
 //required modules and stuffs
 const express = require("express");
-const scrambler = require("cube-scrambler")();
-//switching to a state scrambler
-const Cube = require("cubejs");
-Cube.initSolver();
 const crypto = require("crypto");
 const http = require("http");
 const sanitizeHtml = require('sanitize-html');
@@ -13,6 +9,7 @@ const app = express();
 const {Server} = require("socket.io");
 const server = http.createServer(app);
 const io = new Server(server);
+const disconnectTimers = new Map(); //For handling network dropoff disconnects
 
 const PORT = process.env.PORT || 3000;
 
@@ -50,25 +47,7 @@ function generateRoomCode() {
   return code;
 }
 
-function generateRandomStateScramble() {
-  const scrambleMoves = scrambler.scramble(); //needed to use scrambler anyway lmao
-  const cube = Cube.fromString("UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB");
 
-  scrambleMoves.forEach(move => cube.move(move));
-
-  const solution = cube.solve(); 
-
-  const reversed = solution
-    .split(" ")
-    .reverse()
-    .map(move => {
-      if (move.endsWith("'")) return move.slice(0, -1);
-      if (move.endsWith("2")) return move;
-      return move + "'";
-    });
-
-  return reversed.join(" ");
-}
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
@@ -91,13 +70,13 @@ io.on("connection", (socket) => {
     console.log("[SOCKET] New connection:", socket.id);
 
     //create room handler
-    socket.on("createRoom", ({nickname}) => {
+    socket.on("createRoom", ({nickname, scramble}) => {
       const roomCode = generateRoomCode();
       const token = crypto.randomUUID().replace(/-/g, "");
-      const scramble = generateRandomStateScramble();
+      const finalScramble = scramble || "Couldn't fetch scramble";
 
       db.prepare(`INSERT INTO rooms (code, leader, scramble, created_at) VALUES (?, ?, ?, ?)`)
-        .run(roomCode, token, scramble, Date.now());
+        .run(roomCode, token, finalScramble, Date.now());
 
       db.prepare(`INSERT INTO players (token, room_code, name) VALUES (?, ?, ?)`)
         .run(token, roomCode, nickname);
@@ -106,16 +85,15 @@ io.on("connection", (socket) => {
       socket.emit("roomCreated", {roomCode, token});
     });
 
-     //leader requests new scramble - boom epic new scramble
-    socket.on("requestNextScramble", ({roomCode, token}) => {
+     //leader's request for a new scramble
+    socket.on("requestNextScramble", ({roomCode, token, scramble}) => {
       const room = db.prepare("SELECT * FROM rooms WHERE code = ?").get(roomCode);
       if (!room) return;
       if (room.leader !== token) return;
+      if (!scramble) return;
 
-
-      const newScramble = generateRandomStateScramble();
-      db.prepare("UPDATE rooms SET scramble = ? WHERE code = ?").run(newScramble, roomCode);
-      io.to(roomCode).emit("scrambleUpdated", newScramble);
+      db.prepare("UPDATE rooms SET scramble = ? WHERE code = ?").run(scramble, roomCode);
+      io.to(roomCode).emit("scrambleUpdated", scramble);
     });
 
     //joinRoom handler
@@ -137,8 +115,21 @@ io.on("connection", (socket) => {
 
       const player = db.prepare(`SELECT * FROM players WHERE token = ?`).get(token);
       if (!player) {
+        //new player, insert them inside weeee
         db.prepare(`INSERT INTO players (token, room_code, name) VALUES (?, ?, ?)`)
           .run(token, roomCode, nickname);
+      } else {
+        //EXISTING player (reconnecting or joining a new room)
+        //update their room code and name so their solves go to the right place vro
+        db.prepare(`UPDATE players SET room_code = ?, name = ? WHERE token = ?`)
+          .run(roomCode, nickname, token);
+      }
+
+      //Cancel pending discons
+      if (disconnectTimers.has(token)) {
+        clearTimeout(disconnectTimers.get(token));
+        disconnectTimers.delete(token);
+        console.log(`[SERVER] Cancelled disconnect timer for ${nickname} (${token})`);
       }
 
       const players = db.prepare(`SELECT token, name FROM players WHERE room_code = ?`).all(roomCode);
@@ -291,46 +282,57 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Remove the player from DB
-      db.prepare("DELETE FROM players WHERE token = ? AND room_code = ?").run(token, roomCode);
+      console.log(`[SOCKET] ${nickname} disconnected. Starting 10s grace period...`);
 
-      io.to(roomCode).emit("chatMessage", {
-        name: "Carl",
-        message: `${nickname} left the room :(`,
-        type: "system"
-      });
+      //Start a 10-second timer before deleting the player
+      const timer = setTimeout(() => {
+        // Remove the player from DB
+        db.prepare("DELETE FROM players WHERE token = ? AND room_code = ?").run(token, roomCode);
 
-      // leader change stuffs (pain in the ass)
-      const room = db.prepare("SELECT * FROM rooms WHERE code = ?").get(roomCode);
-      if (room && room.leader === token) {
-        const remainingPlayers = db.prepare("SELECT token, name FROM players WHERE room_code = ?").all(roomCode);
+        io.to(roomCode).emit("chatMessage", {
+          name: "Carl",
+          message: `${nickname} left the room :(`,
+          type: "system"
+        });
 
-        if (remainingPlayers.length > 0) {
-          const newLeader = remainingPlayers[0];
-          db.prepare("UPDATE rooms SET leader = ? WHERE code = ?").run(newLeader.token, roomCode);
+        //leader change stuffs
+        const room = db.prepare("SELECT * FROM rooms WHERE code = ?").get(roomCode);
+        if (room && room.leader === token) {
+          const remainingPlayers = db.prepare("SELECT token, name FROM players WHERE room_code = ?").all(roomCode);
 
-          io.to(roomCode).emit("chatMessage", {
-            name: "Carl",
-            message: `${newLeader.name} is the new leader!`,
-            type: "system"
-          });
+          if (remainingPlayers.length > 0) {
+            const newLeader = remainingPlayers[0];
+            db.prepare("UPDATE rooms SET leader = ? WHERE code = ?").run(newLeader.token, roomCode);
 
-          io.to(roomCode).emit("leaderChanged", {
-            newLeaderToken: newLeader.token,
-            newLeaderName: newLeader.name
-          });
-        } else {
-          // No players left, set leader to null for now (we'll delete room below)
-          db.prepare("UPDATE rooms SET leader = NULL WHERE code = ?").run(roomCode);
+            io.to(roomCode).emit("chatMessage", {
+              name: "Carl",
+              message: `${newLeader.name} is the new leader!`,
+              type: "system"
+            });
+
+            io.to(roomCode).emit("leaderChanged", {
+              newLeaderToken: newLeader.token,
+              newLeaderName: newLeader.name
+            });
+          } else {
+            //No players left, set leader to null for now
+            db.prepare("UPDATE rooms SET leader = NULL WHERE code = ?").run(roomCode);
+          }
         }
-      }
 
-      // Room auto deletion
-      const remaining = db.prepare("SELECT COUNT(*) AS count FROM players WHERE room_code = ?").get(roomCode);
-      if (remaining.count === 0) {
-        db.prepare("DELETE FROM rooms WHERE code = ?").run(roomCode);
-        console.log(`[CARL] Deleted empty room: ${roomCode}`);
-      }
+        //Room auto deletion
+        const remaining = db.prepare("SELECT COUNT(*) AS count FROM players WHERE room_code = ?").get(roomCode);
+        if (remaining.count === 0) {
+          db.prepare("DELETE FROM rooms WHERE code = ?").run(roomCode);
+          console.log(`[CARL] Deleted empty room: ${roomCode}`);
+        }
+
+        //Clean up the map mess
+        disconnectTimers.delete(token);
+      }, 10000); 
+
+      //Store timer for reconnects
+      disconnectTimers.set(token, timer);
     });
 
 
