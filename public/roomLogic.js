@@ -727,7 +727,12 @@ if (!isSolo) {
 }
 
 // Typing animation
+// Typing animation
 function typeWithCursor(element, text, speed = 65, showCursor = true) {
+  if (element.typingTimeout) {
+    clearTimeout(element.typingTimeout);
+  }
+
   element.textContent = "";
   if (showCursor) {
     element.classList.add("typing-cursor");
@@ -739,13 +744,15 @@ function typeWithCursor(element, text, speed = 65, showCursor = true) {
   function typeChar() {
     if (i < text.length) {
       element.textContent += text[i++];
-      setTimeout(typeChar, speed);
+      element.typingTimeout = setTimeout(typeChar, speed);
     } else {
       element.classList.remove("typing-cursor");
+      element.typingTimeout = null;
     }
   }
   typeChar();
 }
+
 
 // Timer functions
 function formatTime(ms, { precision = 2, compact = false } = {}) {
